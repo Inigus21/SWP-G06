@@ -5,22 +5,17 @@ import java.time.LocalDateTime;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 
 @ToString
-@Builder
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
+@Getter
+@Setter
+@Builder
 @Table(name = "tour_schedules")
 public class TourSchedule {
     @Id
@@ -28,26 +23,26 @@ public class TourSchedule {
     private long id;
 
     @ManyToOne
-    @JoinColumn(name = "tour_id")
+    @JoinColumn(name = "tour_id", nullable = false)
     private Tour tour;
 
     @Column(name = "day_number", nullable = false)
     private int dayNumber;
 
-    @Column(nullable = false, length = 500)
+    @Column(length = 1500)
     private String itinerary;
 
-    @Column(nullable = false, length = 1000)
+    @Column(length = 1500)
     private String description;
 
     @CreatedDate
     @Column(name = "created_date", nullable = false, updatable = false)
-    private LocalDateTime createdDate;
+    public LocalDateTime createdDate;
 
     @LastModifiedDate
-    @Column(name = "updated_date")
-    private LocalDateTime updatedDate;
+    @Column(name = "deleted_date")
+    public LocalDateTime deletedDate;
 
     @Column(name = "is_delete", nullable = false)
-    private boolean isDelete;
+    public boolean isDelete;
 }

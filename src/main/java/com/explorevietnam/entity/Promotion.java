@@ -1,48 +1,50 @@
 package com.explorevietnam.entity;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 
 @ToString
-@Builder
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
+@Getter
+@Setter
+@Builder
 @Table(name = "promotions")
 public class Promotion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
+    @ManyToMany
+    @JoinTable(name = "tour_promotion", joinColumns = @JoinColumn(name = "promotion_id"), inverseJoinColumns = @JoinColumn(name = "tour_id"))
+    private List<Tour> tours;
+
     private String title;
+
+    @Column(name = "discount_percentage", nullable = false)
     private float discountPercentage;
-    private LocalDate startDate;
-    private LocalDate endDate;
-    private String description;
+
+    private LocalTime startTime; // Giờ bắt đầu
+
+    private LocalTime endTime; // Giờ kết thúc
+
     @CreatedDate
     @Column(name = "created_date", nullable = false, updatable = false)
     private LocalDateTime createdDate;
 
     @LastModifiedDate
-    @Column(name = "updated_date")
-    private LocalDateTime updatedDate;
+    @Column(name = "deleted_date")
+    private LocalDateTime deletedDate;
 
     @Column(name = "is_delete", nullable = false)
     private boolean isDelete;
-
-    @ManyToMany(mappedBy = "promotions")
-    private List<Tour> tours;
 }

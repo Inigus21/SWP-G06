@@ -8,6 +8,7 @@ public class ExploreVietnamTourApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(ExploreVietnamTourApplication.class, args);
+		
 	}
 
 }
