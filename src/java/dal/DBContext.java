@@ -21,7 +21,7 @@ public class DBContext {
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             String url = "jdbc:sqlserver://localhost:1433;databaseName=SWPver4";
             String user = "sa";
-            String password = "sa";
+            String password = "123456";
             conn = DriverManager.getConnection(url, user, password);
             return conn;
         } catch (SQLException | ClassNotFoundException e) {
@@ -30,3 +30,28 @@ public class DBContext {
         }
     }
 }
+
+//package dal;
+//
+//import java.sql.Connection;
+//import java.sql.DriverManager;
+//import java.sql.SQLException;
+//
+//public class DBContext {
+//    public static void main(String[] args) {
+//        try {
+//            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+//            String url = "jdbc:sqlserver://localhost:1433;databaseName=SWPver4";
+//            String user = "sa";
+//            String password = "123456";
+//
+//            Connection conn = DriverManager.getConnection(url, user, password);
+//            System.out.println("Kết nối thành công!");
+//
+//            // Đóng kết nối sau khi kiểm tra
+//            conn.close();
+//        } catch (SQLException | ClassNotFoundException e) {
+//            System.err.println("Lỗi kết nối: " + e.getMessage());
+//        }
+//    }
+//}
