@@ -62,4 +62,24 @@ public class UserDAO {
         return null;
     }
 
+    public static void main(String[] args) {
+        try {
+            UserDAO dao = new UserDAO();
+            
+            User newUser = new User("Test User", "test@gmail.com", "password123", 1);
+            System.out.println("User registered successfully");
+            
+            Thread.sleep(1000);
+            
+            User loggedUser = dao.login("test@gmail.com", "password123");
+            if (loggedUser != null) {
+                System.out.println("Login successful for: " + loggedUser.getFullName());
+            } else {
+                System.out.println("Login failed");
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
