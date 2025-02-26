@@ -666,7 +666,7 @@
 </head>
 
 <body>
-
+    <jsp:include page="components/header.jsp" />
     
     <div id="webcrumbs">
         <div class="w-[800px] flex bg-white rounded-lg overflow-hidden shadow-xl">
@@ -716,6 +716,7 @@
         </div>
     </div>
 
+    <jsp:include page="components/footer.jsp" />
 </body>
 
 </html>
