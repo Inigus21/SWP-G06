@@ -1121,83 +1121,260 @@
                                 </select>
                             </form>
                         </div>
-                        //                                
+
+                        <div class="space-y-4">
+                            <% for(Tour tour : tours) { List<String>
+                                departureDates =
+                                tourDAO.getDepartureDates(tour.getId());
+                            %>
+                            <div
+                                class="border rounded-lg overflow-hidden hover:shadow-lg transition group">
+                                <div class="flex">
+                                    <div class="w-[300px] relative">
+                                        <img src="<%= tour.getImg() %>"
+                                             class="w-full h-[200px] object-cover group-hover:scale-105 transition duration-500" />
+                                        <button
+                                            class="absolute top-4 left-4 bg-white/90 p-2 rounded-full hover:bg-white transition">
+                                            <span
+                                                class="material-symbols-outlined text-rose-500">favorite</span>
+                                        </button>
+                                    </div>
+                                    <div class="flex-1 p-4">
+                                        <h3
+                                            class="font-medium text-blue-600 hover:text-blue-700 mb-3">
+                                            <%= tour.getName() %>
+                                        </h3>
+                                        <div
+                                            class="flex items-center gap-4 text-sm mb-3">
+                                            <span
+                                                class="flex items-center gap-1">
+                                                <span
+                                                    class="material-symbols-outlined text-base">confirmation_number</span>
+                                                Mã tour: <%= tour.getId() %>
+                                            </span>
+                                            <span
+                                                class="flex items-center gap-1">
+                                                <span
+                                                    class="material-symbols-outlined text-base">schedule</span>
+                                                Thời gian: <%=
+                                                                                                tour.getDuration() %>
+                                            </span>
+                                            <span
+                                                class="flex items-center gap-1">
+                                                <span
+                                                    class="material-symbols-outlined text-base">flight_takeoff</span>
+                                                Khởi hành: <%=
+                                                    tour.getDepartureCity()
+                                                %>
+                                            </span>
+                                        </div>
 
 
-                        <footer class="bg-gray-50 px-8 py-12 w-full">
-                            <div class="grid grid-cols-4 gap-12 max-w-[1200px] mx-auto">
-                                <div>
-                                    <h2 class="text-2xl font-bold mb-4">Tour<span
-                                            class="text-sky-500">Nest</span></h2>
-                                    <p class="text-sm text-gray-600 mb-4">Best Travel
-                                        Agency</p>
-                                    <div class="flex gap-4"> <a href="#"
-                                                                class="text-gray-400 hover:text-[#1877F2] transition">
-                                            <i
-                                                class="fa-brands fa-facebook text-xl"></i>
-                                        </a> <a href="#"
-                                                class="text-gray-400 hover:text-[#1DA1F2] transition">
-                                            <i class="fa-brands fa-twitter text-xl"></i>
-                                        </a> <a href="#"
-                                                class="text-gray-400 hover:text-[#E4405F] transition">
-                                            <i
-                                                class="fa-brands fa-instagram text-xl"></i>
-                                        </a> <a href="#"
-                                                class="text-gray-400 hover:text-black transition">
-                                            <i class="fa-brands fa-tiktok text-xl"></i>
-                                        </a> </div>
-                                </div>
-                                <div>
-                                    <h3 class="font-medium mb-4">Liên hệ</h3>
-                                    <address
-                                        class="not-italic text-sm text-gray-600 space-y-2">
-                                        <p>KCNC Hòa Lạc - Thạch Thất - Hà Nội</p>
-                                        <p>(+84)834197845</p>
-                                        <p>info@vietravel.com</p>
-                                    </address>
-                                </div>
-                                <div>
-                                    <h3 class="font-medium mb-4">Thông tin</h3>
-                                    <ul class="text-sm text-gray-600 space-y-2">
-                                        <li> <a href="#"
-                                                class="hover:text-sky-500 transition">Tin
-                                                tức</a> </li>
-                                        <li> <a href="#"
-                                                class="hover:text-sky-500 transition">Trợ
-                                                giúp</a> </li>
-                                        <li> <a href="#"
-                                                class="hover:text-sky-500 transition">Chính
-                                                sách bảo mật</a> </li>
-                                        <li> <a href="#"
-                                                class="hover:text-sky-500 transition">Điều
-                                                khoản sử dụng</a> </li>
-                                        <li> <a href="#"
-                                                class="hover:text-sky-500 transition">Chính
-                                                sách bảo vệ dữ liệu cá nhân</a>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div>
-                                    <h3 class="font-medium mb-4">Liên hệ ngay</h3> <a
-                                        href="tel:19001839"
-                                        class="inline-flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">
-                                        <span
-                                            class="material-symbols-outlined">call</span>
-                                        1900 1839 </a>
+                                        <div class="flex gap-2 mb-4">
+                                            <% for(String date :
+                                                                                            departureDates) { %>
+                                            <span
+                                                class="px-3 py-1 bg-gray-100 text-xs rounded-full">
+                                                <%= date %>
+                                            </span>
+                                            <% } %>
+                                        </div>
+                                        <div
+                                            class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm">Giá từ:
+                                                </p>
+                                                <p
+                                                    class="font-bold text-red-500">
+                                                    <%= String.format("%,.0f",
+                                                        tour.getPriceAdult())
+                                                    %> đ
+                                                </p>
+                                            </div>
+                                            <a href="tour-detail?id=<%= tour.getId() %>"
+                                               class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
+                                                Xem chi tiết
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </footer>
+                            <% } %>
+                        </div>
+
+                        <div class="flex justify-center items-center space-x-1 mt-8">
+                            <% if(currentPage > 1) { %>
+                            <a href="?page=<%= currentPage - 1 %>&<%= request.getQueryString() != null ? request.getQueryString().replaceAll("&?page=\\d+", "") : "" %>" 
+                               class="px-4 py-2 text-gray-500 bg-white hover:bg-blue-50 border border-gray-300 rounded-lg transition duration-200 ease-in-out flex items-center gap-1">
+                                <i class="fas fa-chevron-left text-sm"></i>
+                                <span class="hidden sm:inline">Trước</span>
+                            </a>
+                            <% } else { %>
+                            <button disabled
+                                    class="px-4 py-2 text-gray-400 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed flex items-center gap-1">
+                                <i
+                                    class="fas fa-chevron-left text-sm"></i>
+                                <span
+                                    class="hidden sm:inline">Trước</span>
+                            </button>
+                            <% } %>
+
+                            <div class="hidden md:flex space-x-1">
+                                <% int startPage=Math.max(1,
+                                    currentPage - 2); int
+                                    endPage=Math.min(totalPages,
+                                    currentPage + 2); if (startPage>
+                                    1) { %>
+                                <a href="?page=1&<%= request.getQueryString() != null ? request.getQueryString().replaceAll("&?page=\\d+", "") : "" %>"
+                                   class="px-4 py-2 text-gray-500 bg-white hover:bg-blue-50 border border-gray-300 rounded-lg transition duration-200">
+                                    1
+                                </a>
+                                <% if (startPage> 2) { %>
+                                <span
+                                    class="px-4 py-2 text-gray-500">...</span>
+                                <% } %>
+                                <% } %>
+
+                                <% for(int
+                                    i=startPage; i
+                                    <=endPage; i++)
+                                    { %>
+                                <a href="?page=<%= i %>&<%= request.getQueryString() != null ? request.getQueryString().replaceAll("&?page=\\d+", "") : "" %>"
+                                   class="px-4 py-2 <%= currentPage == i 
+? " bg-blue-500 text-white border-blue-500" : "text-gray-500 bg-white hover:bg-blue-50 border-gray-300"
+                                   %>
+                                   border
+                                   rounded-lg
+                                   transition
+                                   duration-200">
+                                    <%= i %>
+                                </a>
+                                <% } %>
+
+                                <% if
+                                    (endPage
+                                    <
+                                    totalPages)
+                                    { %>
+                                <% if
+                                    (endPage
+                                    <
+                                    totalPages
+                                    - 1)
+                                    { %>
+                                <span
+                                    class="px-4 py-2 text-gray-500">...</span>
+                                <% }
+                                %>
+                                <a href="?page=<%= totalPages %>&<%= request.getQueryString() != null ? request.getQueryString().replaceAll("&?page=\\d+", "") : "" %>"
+                                   class="px-4 py-2 text-gray-500 bg-white hover:bg-blue-50 border border-gray-300 rounded-lg transition duration-200">
+                                    <%= totalPages
+                                    %>
+                                </a>
+                                <% }
+                                %>
+                            </div>
+                           
+                            <span
+                                class="md:hidden px-4 py-2 text-sm text-gray-500">
+                                Trang <%= currentPage %> / <%=
+                                                                                            totalPages %>
+                            </span>
+
+                            <% if(currentPage < totalPages) { %>
+                            <a href="?page=<%= currentPage + 1 %>&<%= request.getQueryString() != null ? request.getQueryString().replaceAll("&?page=\\d+", "") : "" %>"
+                               class="px-4 py-2 text-gray-500 bg-white hover:bg-blue-50 border border-gray-300 rounded-lg transition duration-200 ease-in-out flex items-center gap-1">
+                                <span
+                                    class="hidden sm:inline">Tiếp</span>
+                                <i
+                                    class="fas fa-chevron-right text-sm"></i>
+                            </a>
+                            <% } else { %>
+                            <button disabled
+                                    class="px-4 py-2 text-gray-400 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed flex items-center gap-1">
+                                <span
+                                    class="hidden sm:inline">Tiếp</span>
+                                <i
+                                    class="fas fa-chevron-right text-sm"></i>
+                            </button>
+                            <% } %>
+                        </div>
                     </div>
                 </div>
+                            <footer class="bg-gray-50 px-8 py-12 w-full">
+                                <div class="grid grid-cols-4 gap-12 max-w-[1200px] mx-auto">
+                                    <div>
+                                        <h2 class="text-2xl font-bold mb-4">Tour<span
+                                                class="text-sky-500">Nest</span></h2>
+                                        <p class="text-sm text-gray-600 mb-4">Best Travel
+                                            Agency</p>
+                                        <div class="flex gap-4"> <a href="#"
+                                                                    class="text-gray-400 hover:text-[#1877F2] transition">
+                                                <i
+                                                    class="fa-brands fa-facebook text-xl"></i>
+                                            </a> <a href="#"
+                                                    class="text-gray-400 hover:text-[#1DA1F2] transition">
+                                                <i class="fa-brands fa-twitter text-xl"></i>
+                                            </a> <a href="#"
+                                                    class="text-gray-400 hover:text-[#E4405F] transition">
+                                                <i
+                                                    class="fa-brands fa-instagram text-xl"></i>
+                                            </a> <a href="#"
+                                                    class="text-gray-400 hover:text-black transition">
+                                                <i class="fa-brands fa-tiktok text-xl"></i>
+                                            </a> </div>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-medium mb-4">Liên hệ</h3>
+                                        <address
+                                            class="not-italic text-sm text-gray-600 space-y-2">
+                                            <p>KCNC Hòa Lạc - Thạch Thất - Hà Nội</p>
+                                            <p>(+84)834197845</p>
+                                            <p>info@vietravel.com</p>
+                                        </address>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-medium mb-4">Thông tin</h3>
+                                        <ul class="text-sm text-gray-600 space-y-2">
+                                            <li> <a href="#"
+                                                    class="hover:text-sky-500 transition">Tin
+                                                    tức</a> </li>
+                                            <li> <a href="#"
+                                                    class="hover:text-sky-500 transition">Trợ
+                                                    giúp</a> </li>
+                                            <li> <a href="#"
+                                                    class="hover:text-sky-500 transition">Chính
+                                                    sách bảo mật</a> </li>
+                                            <li> <a href="#"
+                                                    class="hover:text-sky-500 transition">Điều
+                                                    khoản sử dụng</a> </li>
+                                            <li> <a href="#"
+                                                    class="hover:text-sky-500 transition">Chính
+                                                    sách bảo vệ dữ liệu cá nhân</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-medium mb-4">Liên hệ ngay</h3> <a
+                                            href="tel:19001839"
+                                            class="inline-flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">
+                                            <span
+                                                class="material-symbols-outlined">call</span>
+                                            1900 1839 </a>
+                                    </div>
+                                </div>
+                            </footer>
+                        </div>
+                    </div>
 
-                <% if (request.getAttribute("errorMessage") !=null) { %>
-                <div
-                    class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                    <%= request.getAttribute("errorMessage") %>
-                </div>
-                <% } %>
-                </body>
+                    <% if (request.getAttribute("errorMessage") !=null) { %>
+                    <div
+                        class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                        <%= request.getAttribute("errorMessage") %>
+                    </div>
+                    <% } %>
+                    </body>
 
-                </html>
+                    </html>
 
 
