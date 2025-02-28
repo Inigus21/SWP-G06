@@ -990,7 +990,7 @@
                                         <% } %>
                                     </select>
                                 </div>
-                                !-- Ngày đi -->
+                                <!-- Ngày đi -->
                                 <div class="mb-4">
                                     <label
                                         class="block text-sm font-medium mb-2">Ngày
