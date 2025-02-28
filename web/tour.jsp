@@ -838,6 +838,7 @@
             }
         </style>
     </head>
+
     <body>
         <% List<Tour> tours = (List<Tour>) request.getAttribute("tours");
                 int currentPage = (Integer) request.getAttribute("currentPage");
@@ -898,39 +899,47 @@
                                 </div>
 
                                 <!-- Price range -->
-                                <div class="grid grid-cols-2 gap-2">
-                                    <label class="flex items-center space-x-2">
-                                        <input type="checkbox" name="price"
-                                               value="0" <%=selectedPrices !=null
-                                               &&
-                                               Arrays.asList(selectedPrices).contains("0")
-                                               ? "checked" : "" %>/>
-                                        <span>Dưới 5 triệu</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2">
-                                        <input type="checkbox" name="price"
-                                               value="5" <%=selectedPrices
-                                               !=null &&
-                                               Arrays.asList(selectedPrices).contains("5")
-                                               ? "checked" : "" %>/>
-                                        <span>5-10 triệu</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2">
-                                        <input type="checkbox" name="price"
-                                               value="10" <%=selectedPrices
-                                               !=null &&
-                                               Arrays.asList(selectedPrices).contains("10")
-                                               ? "checked" : "" %>/>
-                                        <span>10-20 triệu</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2">
-                                        <input type="checkbox" name="price"
-                                               value="20" <%=selectedPrices
-                                               !=null &&
-                                               Arrays.asList(selectedPrices).contains("20")
-                                               ? "checked" : "" %>/>
-                                        <span>Trên 20 triệu</span>
-                                    </label>
+                                <!-- Ngân sách -->
+                                <div class="mb-4">
+                                    <div class="text-sm mb-2">Ngân sách:</div>
+                                    <div class="space-y-2">
+                                        <label
+                                            class="flex items-center space-x-2 border rounded p-2 text-sm">
+                                            <input type="checkbox" name="price"
+                                                   value="0" <%=selectedPrices
+                                                   !=null &&
+                                                   Arrays.asList(selectedPrices).contains("0")
+                                                   ? "checked" : "" %>/>
+                                            <span>Dưới 5 triệu</span>
+                                        </label>
+                                        <label
+                                            class="flex items-center space-x-2 border rounded p-2 text-sm">
+                                            <input type="checkbox" name="price"
+                                                   value="5" <%=selectedPrices
+                                                   !=null &&
+                                                   Arrays.asList(selectedPrices).contains("5")
+                                                   ? "checked" : "" %>/>
+                                            <span>Từ 5-10 triệu</span>
+                                        </label>
+                                        <label
+                                            class="flex items-center space-x-2 border rounded p-2 text-sm">
+                                            <input type="checkbox" name="price"
+                                                   value="10" <%=selectedPrices
+                                                   !=null &&
+                                                   Arrays.asList(selectedPrices).contains("10")
+                                                   ? "checked" : "" %>/>
+                                            <span>Từ 10-20 triệu</span>
+                                        </label>
+                                        <label
+                                            class="flex items-center space-x-2 border rounded p-2 text-sm">
+                                            <input type="checkbox" name="price"
+                                                   value="20" <%=selectedPrices
+                                                   !=null &&
+                                                   Arrays.asList(selectedPrices).contains("20")
+                                                   ? "checked" : "" %>/>
+                                            <span>Trên 20 triệu</span>
+                                        </label>
+                                    </div>
                                 </div>
 
                                 <!-- Region -->
@@ -990,6 +999,7 @@
                                         <% } %>
                                     </select>
                                 </div>
+
                                 <!-- Ngày đi -->
                                 <div class="mb-4">
                                     <label
@@ -1021,19 +1031,17 @@
                                         <% } %>
                                     </select>
                                 </div>
-                                <!-- Dòng tour -->
+
+                               <!-- Dòng tour -->
                                 <div class="mb-4">
-                                    <label
-                                        class="block text-sm font-medium mb-2">Dòng
-                                        tour</label>
-                                    <div class="grid grid-cols-2 gap-2">
+                                    <div class="text-sm mb-2">Dòng tour:</div>
+                                    <div class="space-y-2">
                                         <% List<Category> categories =
                                             tourDAO.getAllCategories();
                                             for(Category category : categories)
-                                            {
-                                        %>
+                                            { %>
                                         <label
-                                            class="flex items-center space-x-2">
+                                            class="flex items-center space-x-2 border rounded p-2 text-sm">
                                             <input type="checkbox"
                                                    name="category"
                                                    value="<%= category.getId() %>"
@@ -1055,7 +1063,6 @@
                             </form>
                         </div>
                     </div>
-
                     <div class="flex-1">
                         <div class="flex items-center justify-between mb-6">
                             <p class="text-sm">Chúng tôi tìm thấy <span
@@ -1103,6 +1110,7 @@
                                 <input type="hidden" name="category" value="<%= category %>">
                                 <% }
                                                                         } %>
+
                                 <select name="sort"
                                         class="border p-2 rounded hover:border-sky-500 focus:ring-2 focus:ring-sky-500 focus:outline-none transition"
                                         onchange="this.form.submit()">
@@ -1168,6 +1176,7 @@
                                                 %>
                                             </span>
                                         </div>
+
 
 
                                         <div class="flex gap-2 mb-4">
@@ -1274,7 +1283,7 @@
                                 <% }
                                 %>
                             </div>
-                           
+
                             <span
                                 class="md:hidden px-4 py-2 text-sm text-gray-500">
                                 Trang <%= currentPage %> / <%=
@@ -1301,80 +1310,78 @@
                         </div>
                     </div>
                 </div>
-                            <footer class="bg-gray-50 px-8 py-12 w-full">
-                                <div class="grid grid-cols-4 gap-12 max-w-[1200px] mx-auto">
-                                    <div>
-                                        <h2 class="text-2xl font-bold mb-4">Tour<span
-                                                class="text-sky-500">Nest</span></h2>
-                                        <p class="text-sm text-gray-600 mb-4">Best Travel
-                                            Agency</p>
-                                        <div class="flex gap-4"> <a href="#"
-                                                                    class="text-gray-400 hover:text-[#1877F2] transition">
-                                                <i
-                                                    class="fa-brands fa-facebook text-xl"></i>
-                                            </a> <a href="#"
-                                                    class="text-gray-400 hover:text-[#1DA1F2] transition">
-                                                <i class="fa-brands fa-twitter text-xl"></i>
-                                            </a> <a href="#"
-                                                    class="text-gray-400 hover:text-[#E4405F] transition">
-                                                <i
-                                                    class="fa-brands fa-instagram text-xl"></i>
-                                            </a> <a href="#"
-                                                    class="text-gray-400 hover:text-black transition">
-                                                <i class="fa-brands fa-tiktok text-xl"></i>
-                                            </a> </div>
-                                    </div>
-                                    <div>
-                                        <h3 class="font-medium mb-4">Liên hệ</h3>
-                                        <address
-                                            class="not-italic text-sm text-gray-600 space-y-2">
-                                            <p>KCNC Hòa Lạc - Thạch Thất - Hà Nội</p>
-                                            <p>(+84)834197845</p>
-                                            <p>info@vietravel.com</p>
-                                        </address>
-                                    </div>
-                                    <div>
-                                        <h3 class="font-medium mb-4">Thông tin</h3>
-                                        <ul class="text-sm text-gray-600 space-y-2">
-                                            <li> <a href="#"
-                                                    class="hover:text-sky-500 transition">Tin
-                                                    tức</a> </li>
-                                            <li> <a href="#"
-                                                    class="hover:text-sky-500 transition">Trợ
-                                                    giúp</a> </li>
-                                            <li> <a href="#"
-                                                    class="hover:text-sky-500 transition">Chính
-                                                    sách bảo mật</a> </li>
-                                            <li> <a href="#"
-                                                    class="hover:text-sky-500 transition">Điều
-                                                    khoản sử dụng</a> </li>
-                                            <li> <a href="#"
-                                                    class="hover:text-sky-500 transition">Chính
-                                                    sách bảo vệ dữ liệu cá nhân</a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <div>
-                                        <h3 class="font-medium mb-4">Liên hệ ngay</h3> <a
-                                            href="tel:19001839"
-                                            class="inline-flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">
-                                            <span
-                                                class="material-symbols-outlined">call</span>
-                                            1900 1839 </a>
-                                    </div>
-                                </div>
-                            </footer>
+                <footer class="bg-gray-50 px-8 py-12 w-full">
+                    <div class="grid grid-cols-4 gap-12 max-w-[1200px] mx-auto">
+                        <div>
+                            <h2 class="text-2xl font-bold mb-4">Tour<span
+                                    class="text-sky-500">Nest</span></h2>
+                            <p class="text-sm text-gray-600 mb-4">Best Travel
+                                Agency</p>
+                            <div class="flex gap-4"> <a href="#"
+                                                        class="text-gray-400 hover:text-[#1877F2] transition">
+                                    <i
+                                        class="fa-brands fa-facebook text-xl"></i>
+                                </a> <a href="#"
+                                        class="text-gray-400 hover:text-[#1DA1F2] transition">
+                                    <i class="fa-brands fa-twitter text-xl"></i>
+                                </a> <a href="#"
+                                        class="text-gray-400 hover:text-[#E4405F] transition">
+                                    <i
+                                        class="fa-brands fa-instagram text-xl"></i>
+                                </a> <a href="#"
+                                        class="text-gray-400 hover:text-black transition">
+                                    <i class="fa-brands fa-tiktok text-xl"></i>
+                                </a> </div>
+                        </div>
+                        <div>
+                            <h3 class="font-medium mb-4">Liên hệ</h3>
+                            <address
+                                class="not-italic text-sm text-gray-600 space-y-2">
+                                <p>KCNC Hòa Lạc - Thạch Thất - Hà Nội</p>
+                                <p>(+84)834197845</p>
+                                <p>info@vietravel.com</p>
+                            </address>
+                        </div>
+                        <div>
+                            <h3 class="font-medium mb-4">Thông tin</h3>
+                            <ul class="text-sm text-gray-600 space-y-2">
+                                <li> <a href="#"
+                                        class="hover:text-sky-500 transition">Tin
+                                        tức</a> </li>
+                                <li> <a href="#"
+                                        class="hover:text-sky-500 transition">Trợ
+                                        giúp</a> </li>
+                                <li> <a href="#"
+                                        class="hover:text-sky-500 transition">Chính
+                                        sách bảo mật</a> </li>
+                                <li> <a href="#"
+                                        class="hover:text-sky-500 transition">Điều
+                                        khoản sử dụng</a> </li>
+                                <li> <a href="#"
+                                        class="hover:text-sky-500 transition">Chính
+                                        sách bảo vệ dữ liệu cá nhân</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-medium mb-4">Liên hệ ngay</h3> <a
+                                href="tel:19001839"
+                                class="inline-flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">
+                                <span
+                                    class="material-symbols-outlined">call</span>
+                                1900 1839 </a>
                         </div>
                     </div>
+                </footer>
+            </div>
+        </div>
 
-                    <% if (request.getAttribute("errorMessage") !=null) { %>
-                    <div
-                        class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                        <%= request.getAttribute("errorMessage") %>
-                    </div>
-                    <% } %>
-                    </body>
+        <% if (request.getAttribute("errorMessage") !=null) { %>
+        <div
+            class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <%= request.getAttribute("errorMessage") %>
+        </div>
+        <% } %>
+    </body>
 
-                    </html>
-
-
+</html>
