@@ -82,4 +82,25 @@ public class UserDAO {
             e.printStackTrace();
         }
     }
-}
+
+ public boolean checkEmailExists(String email) throws SQLException, ClassNotFoundException {
+        String sql = "SELECT email FROM Account WHERE email = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+ public void register(User user) throws SQLException, ClassNotFoundException, NoSuchAlgorithmException {
+        String sql = "INSERT INTO Account (full_name, email, password, roleId, is_delete, create_date) VALUES (?, ?, ?, 1, 0, GETDATE())";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, user.getFullName().trim());
+            ps.setString(2, user.getEmail().trim());
+            String hashedPassword = PasswordHashing.hashPassword(user.getPassword());
+            System.out.println("Registering with hash: " + hashedPassword);
+            ps.setString(3, hashedPassword);
+            ps.executeUpdate();
+        }
+    }}
