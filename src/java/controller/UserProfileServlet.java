@@ -86,7 +86,7 @@ public class UserProfileServlet extends HttpServlet {
                     String uniqueFileName = System.currentTimeMillis() + "_" + fileName;
                     String filePath = uploadDir + File.separator + uniqueFileName;
                     filePart.write(filePath);
-                    
+                    //have not used update avatar
                     userDAO.updateAvatar(sessionUser.getId(), "uploads/avatars/" + uniqueFileName);
                     session.setAttribute("user", userDAO.getUserById(sessionUser.getId()));
                     request.setAttribute("success", "Cập nhật ảnh đại diện thành công");
