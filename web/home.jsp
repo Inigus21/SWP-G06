@@ -1,13 +1,12 @@
-<%-- 
-    Document   : home.jsp
-    Created on : Mar 3, 2025, 8:22:44 PM
-    Author     : nguye
---%>
+
+
 <%@ page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ page import="dao.TourDAO" %>
 <%@ page import="model.City" %>
 <%@ page import="java.util.List" %>
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+
+
+
 <!DOCTYPE html>
 <html>
     <head>
@@ -949,10 +948,9 @@
                                                  alt="avatar" 
                                                  class="w-8 h-8 rounded-full border-2 border-white"/>
                                             <span class="font-medium text-gray-700">Xin chào, <%= user.getFullName() %></span>
-                                          href="logout" 
-                                               class="flex items-center px-4 py-2 text-red-600 hover:bg-gray-100 transition-colors duration-200">
-                                                <i class="fas fa-sign-out-alt text-red-600 w-5"></i>
-                                                <span cla   <i class="fas fa-chevron-down text-gray-500 text-sm transition-transform duration-200"
+
+                                            <i class="fas fa-chevron-down text-gray-500 text-sm transition-transform duration-200"
+
                                                :class="{ 'transform rotate-180': isOpen }"></i>
                                         </button>
                                         
