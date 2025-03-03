@@ -82,4 +82,31 @@ public class UserDAO {
             e.printStackTrace();
         }
     }
+    
+    public User getUserById(int id) throws SQLException, ClassNotFoundException {
+        String sql = "SELECT * FROM Account WHERE id = ? AND is_delete = 0";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    User user = new User();
+                    user.setId(rs.getInt("id"));
+                    user.setFullName(rs.getString("full_name"));
+                    user.setEmail(rs.getString("email"));
+                    user.setRoleId(rs.getInt("roleId"));
+                    user.setPhone(rs.getString("phone"));
+                    user.setAddress(rs.getString("address"));
+                    user.setGender(rs.getBoolean("gender"));
+                    user.setDob(rs.getString("dob"));
+                    user.setAvatar(rs.getString("avatar"));
+                    user.setGoogleId(rs.getString("googleID"));
+                    user.setCreateDate(rs.getString("create_date"));
+                    user.setIsDelete(rs.getBoolean("is_delete"));
+                    return user;
+                }
+            }
+        }
+        return null;
+    }
 }
