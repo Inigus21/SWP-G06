@@ -1050,7 +1050,6 @@
                                 <div class="flex gap-4">
                                     <select name="departure" class="w-full pl-10 pr-4 py-2 border rounded hover:border-blue-500 focus:border-blue-500 focus:outline-none transition">
                                         <option value="">Khởi hành từ</option>
-                                            <option>Điểm đến</option>
                                             <% 
                                         TourDAO tourDAO = new TourDAO();
                                         List<City> cities = tourDAO.getAllCities();
@@ -1068,13 +1067,18 @@
                         <div class="flex justify-center gap-16 mb-16">
                             <div class="text-center group cursor-pointer">
                                 <div class="bg-blue-50 p-4 rounded-lg mb-2 group-hover:bg-blue-100 transition">
-                                    <span class="material-symbols-outlined text-3xl">hiking</span> </div>
-                                <p>Hình thức du lịch 1</p>
+                                    <span class="material-symbols-outlined text-3xl">experience</span> </div>
+                                <p>Du lịch trải nghiệm</p>
                             </div>
                             <div class="text-center group cursor-pointer">
                                 <div class="bg-blue-50 p-4 rounded-lg mb-2 group-hover:bg-blue-100 transition">
-                                    <span class="material-symbols-outlined text-3xl">experience</span> </div>
-                                <p>Hình thức du lịch 2</p>
+                                    <span class="material-symbols-outlined text-3xl">discover</span> </div>
+                                <p>Du lịch khám phá</p>
+                            </div>
+                            <div class="text-center group cursor-pointer">
+                                <div class="bg-blue-50 p-4 rounded-lg mb-2 group-hover:bg-blue-100 transition">
+                                    <span class="material-symbols-outlined text-3xl">relaxing</span> </div>
+                                <p>Du lịch nghỉ dưỡng</p>
                             </div>
                         </div>
                         <section class="mb-16">
@@ -1211,216 +1215,8 @@
                                     class="border border-blue-500 text-blue-500 px-8 py-2 rounded hover:bg-blue-50 transition">Xem
                                     tất cả</button> </div>
                         </section>
-                        <section class="mb-16">
-                            <h2 class="text-2xl font-bold mb-8 text-center">Ưu đãi giờ chót</h2>
-                            <p class="text-center mb-8 text-gray-600">Nhanh tay nắm bắt cơ hội giảm giá cuối cùng.
-                                Đặt ngay
-                                để không bỏ lỡi</p>
-                            <div class="grid grid-cols-3 gap-8">
-                                <div class="bg-white rounded-lg shadow-lg overflow-hidden group">
-                                    <div class="relative"> <img
-                                            src="https://images.unsplash.com/photo-1583417319070-4a69db38a482"
-                                            alt="Tour"
-                                            class="w-full h-[200px] object-cover group-hover:scale-110 transition duration-500" />
-                                        <span
-                                            class="absolute top-4 right-4 material-symbols-outlined text-white bg-black/50 p-1 rounded-full cursor-pointer hover:bg-black/70 transition">favorite</span>
-                                        <div
-                                            class="absolute top-4 left-4 bg-red-500 text-white px-2 py-1 rounded text-sm">
-                                            Giờ chót</div>
-                                        <div
-                                            class="absolute bottom-4 right-4 bg-white text-red-500 px-2 py-1 rounded text-sm font-bold">
-                                            02:24:45</div>
-                                    </div>
-                                    <div class="p-4">
-                                        <h3 class="font-bold mb-2">Tour Bắc - Nam</h3>
-                                        <div class="flex items-center gap-2 text-sm text-gray-600 mb-2"> <span
-                                                class="material-symbols-outlined">schedule</span> <span>4N3Đ</span>
-                                            <span>|</span> <span>Số chỗ còn nhận: 1</span>
-                                        </div>
-                                        <div class="flex items-center gap-2 text-sm text-gray-600 mb-4"> <span
-                                                class="material-symbols-outlined">calendar_today</span> <span>Khởi
-                                                hành:
-                                                20/02/2025</span> </div>
-                                        <div class="flex items-center justify-between">
-                                            <div>
-                                                <p class="text-sm text-gray-600">Giá từ:</p>
-                                                <p class="text-xl font-bold text-red-500">4.290.000 đ</p>
-                                                <p class="text-sm line-through text-gray-400">4.990.000 đ</p>
-                                            </div> <button
-                                                class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">Đặt
-                                                ngay</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="bg-white rounded-lg shadow-lg overflow-hidden group">
-                                    <div class="relative"> <img
-                                            src="https://images.unsplash.com/photo-1583417319070-4a69db38a482"
-                                            alt="Tour"
-                                            class="w-full h-[200px] object-cover group-hover:scale-110 transition duration-500" />
-                                        <span
-                                            class="absolute top-4 right-4 material-symbols-outlined text-white bg-black/50 p-1 rounded-full cursor-pointer hover:bg-black/70 transition">favorite</span>
-                                        <div
-                                            class="absolute top-4 left-4 bg-red-500 text-white px-2 py-1 rounded text-sm">
-                                            Giờ chót</div>
-                                        <div
-                                            class="absolute bottom-4 right-4 bg-white text-red-500 px-2 py-1 rounded text-sm font-bold">
-                                            03:55:34</div>
-                                    </div>
-                                    <div class="p-4">
-                                        <h3 class="font-bold mb-2">Tour HCM - Safari</h3>
-                                        <div class="flex items-center gap-2 text-sm text-gray-600 mb-2"> <span
-                                                class="material-symbols-outlined">schedule</span> <span>4N3Đ</span>
-                                            <span>|</span> <span>Số chỗ còn nhận: 7</span>
-                                        </div>
-                                        <div class="flex items-center gap-2 text-sm text-gray-600 mb-4"> <span
-                                                class="material-symbols-outlined">calendar_today</span> <span>Khởi
-                                                hành:
-                                                20/02/2025</span> </div>
-                                        <div class="flex items-center justify-between">
-                                            <div>
-                                                <p class="text-sm text-gray-600">Giá từ:</p>
-                                                <p class="text-xl font-bold text-red-500">4.990.000 đ</p>
-                                                <p class="text-sm line-through text-gray-400">5.990.000 đ</p>
-                                            </div> <button
-                                                class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">Đặt
-                                                ngay</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="bg-white rounded-lg shadow-lg overflow-hidden group">
-                                    <div class="relative"> <img
-                                            src="https://images.unsplash.com/photo-1583417319070-4a69db38a482"
-                                            alt="Tour"
-                                            class="w-full h-[200px] object-cover group-hover:scale-110 transition duration-500" />
-                                        <span
-                                            class="absolute top-4 right-4 material-symbols-outlined text-white bg-black/50 p-1 rounded-full cursor-pointer hover:bg-black/70 transition">favorite</span>
-                                        <div
-                                            class="absolute top-4 left-4 bg-red-500 text-white px-2 py-1 rounded text-sm">
-                                            Giờ chót</div>
-                                        <div
-                                            class="absolute bottom-4 right-4 bg-white text-red-500 px-2 py-1 rounded text-sm font-bold">
-                                            03:24:42</div>
-                                    </div>
-                                    <div class="p-4">
-                                        <h3 class="font-bold mb-2">Tour Quy Nhơn</h3>
-                                        <div class="flex items-center gap-2 text-sm text-gray-600 mb-2"> <span
-                                                class="material-symbols-outlined">schedule</span> <span>4N3Đ</span>
-                                            <span>|</span> <span>Số chỗ còn nhận: 4</span>
-                                        </div>
-                                        <div class="flex items-center gap-2 text-sm text-gray-600 mb-4"> <span
-                                                class="material-symbols-outlined">calendar_today</span> <span>Khởi
-                                                hành:
-                                                20/02/2025</span> </div>
-                                        <div class="flex items-center justify-between">
-                                            <div>
-                                                <p class="text-sm text-gray-600">Giá từ:</p>
-                                                <p class="text-xl font-bold text-red-500">4.890.000 đ</p>
-                                                <p class="text-sm line-through text-gray-400">5.490.000 đ</p>
-                                            </div> <button
-                                                class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">Đặt
-                                                ngay</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="text-center mt-8"> <button
-                                    class="border border-blue-500 text-blue-500 px-8 py-2 rounded hover:bg-blue-50 transition">Xem
-                                    tất cả</button> </div>
-                        </section>
-                        <section class="mb-16">
-                            <h2 class="text-2xl font-bold mb-8 text-center">Đánh giá</h2>
-                            <p class="text-center mb-8 text-gray-600">Ý kiến của khách hàng về trải nghiệm của dịch
-                                vụ khác
-                                của TourNest</p>
-                            <div class="grid grid-cols-3 gap-8">
-                                <div class="bg-white rounded-lg shadow-lg p-6"> <img
-                                        src="https://images.unsplash.com/photo-1583417319070-4a69db38a482"
-                                        alt="Review" class="w-full h-[200px] object-cover rounded-lg mb-4" />
-                                    <p class="text-gray-600 mb-4">&quot;Mình đã có một trải nghiệm tuyệt vời với
-                                        dịch vụ của
-                                        TourNest. Đồng hành cùng TourNest, mình đã thấy được những dịch vụ tốt nhất
-                                        và khó
-                                        quên trong cuộc hành trình của mình.&quot;</p>
-                                    <p class="font-bold">- Chi Linh - Nha Trang 2024-</p>
-                                </div>
-                                <div class="bg-white rounded-lg shadow-lg p-6"> <img
-                                        src="https://images.unsplash.com/photo-1583417319070-4a69db38a482"
-                                        alt="Review" class="w-full h-[200px] object-cover rounded-lg mb-4" />
-                                    <p class="text-gray-600 mb-4">&quot;Sau khi có những trải nghiệm tuyệt vời cùng
-                                        dịch vụ
-                                        của TourNest, gia đình nhanh chóng sắp xếp để sử dụng những dịch vụ tốt khác
-                                        của các
-                                        bạn và không thể khiến tôi phàn nàn về những dịch vụ của TourNest.&quot;</p>
-                                    <p class="font-bold">- Anh Minh - Hạ Long 2024-</p>
-                                </div>
-                                <div class="bg-white rounded-lg shadow-lg p-6"> <img
-                                        src="https://images.unsplash.com/photo-1583417319070-4a69db38a482"
-                                        alt="Review" class="w-full h-[200px] object-cover rounded-lg mb-4" />
-                                    <p class="text-gray-600 mb-4">&quot;Du lịch là nơi để để lại những trải nghiệm
-                                        khó quên
-                                        và TourNest đã mang lại cho gia đình tôi những trải nghiệm tốt nhất.&quot;
-                                    </p>
-                                    <p class="font-bold">- Chi Hạnh - Đà Lạt 2024-</p>
-                                </div>
-                            </div>
-                        </section>
                     </div>
                 </main>
-                <footer class="bg-gray-100 px-8 py-12 w-full">
-                    <div class="grid grid-cols-4 gap-8 mb-8">
-                        <div>
-                            <h3 class="text-2xl font-bold mb-4">TourNest</h3>
-                            <p class="text-gray-600 mb-4">KCNC Hòa Lạc - Thạch Thất - Hà Nội</p>
-                            <p class="text-gray-600">(+84)8341679645</p>
-                            <p class="text-gray-600 mb-4">tournest@gmail.com</p>
-                            <div class="flex gap-4"> <a href="#"
-                                    class="text-gray-600 hover:text-blue-500 transition"> <i
-                                        class="fa-brands fa-facebook text-2xl"></i> </a> <a href="#"
-                                    class="text-gray-600 hover:text-blue-500 transition"> <i
-                                        class="fa-brands fa-twitter text-2xl"></i> </a> <a href="#"
-                                    class="text-gray-600 hover:text-blue-500 transition"> <i
-                                        class="fa-brands fa-instagram text-2xl"></i> </a> <a href="#"
-                                    class="text-gray-600 hover:text-blue-500 transition"> <i
-                                        class="fa-brands fa-youtube text-2xl"></i> </a> </div>
-                        </div>
-                        <div>
-                            <h3 class="font-bold mb-4">Thông tin</h3>
-                            <ul class="space-y-2">
-                                <li><a href="#" class="text-gray-600 hover:text-blue-500 transition">Trợ giúp</a>
-                                </li>
-                                <li><a href="#" class="text-gray-600 hover:text-blue-500 transition">Chính sách bảo
-                                        mật</a>
-                                </li>
-                                <li><a href="#" class="text-gray-600 hover:text-blue-500 transition">Điều khoản sử
-                                        dụng</a>
-                                </li>
-                                <li><a href="#" class="text-gray-600 hover:text-blue-500 transition">Chính sách đổi
-                                        trả và
-                                        lấy lại tiền</a></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 class="font-bold mb-4">Hỗ trợ</h3>
-                            <ul class="space-y-2">
-                                <li><a href="#" class="text-gray-600 hover:text-blue-500 transition">FAQs</a></li>
-                                <li><a href="#" class="text-gray-600 hover:text-blue-500 transition">Liên hệ</a>
-                                </li>
-                                <li><a href="#" class="text-gray-600 hover:text-blue-500 transition">Blog</a></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 class="font-bold mb-4">Tải ứng dụng</h3>
-                            <div class="space-y-4"> <button
-                                    class="bg-black text-white px-6 py-2 rounded flex items-center gap-2 hover:bg-gray-800 transition w-full">
-                                    <i class="fa-brands fa-apple text-2xl"></i>
-                                    <div class="text-left">
-                                        <p class="text-xs">Download on the</p>
-                                        <p class="font-bold">App Store</p>
-                                    </div>
-                                </button> </div>
-                        </div>
-                    </div>
-                </footer>
             </div>
         </div>
     </body>
