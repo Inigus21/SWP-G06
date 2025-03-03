@@ -937,14 +937,22 @@
                                     1839 - Từ 8:00 - 11:00 hàng ngày</span>
                             </div>
                             <div class="flex items-center space-x-8">
-                                    <% if (session.getAttribute("user") != null) { 
+                                <% if (session.getAttribute("user") != null) { 
                                     model.User user = (model.User) session.getAttribute("user");
                                 %>
                                     <div class="relative" x-data="{ isOpen: false }">
                                         <button @click="isOpen = !isOpen" 
                                                 class="flex items-center space-x-3 focus:outline-none bg-gray-100 hover:bg-gray-200 rounded-full py-2 px-4">
+                                            <img src="<%= user.getAvatar() != null && !user.getAvatar().isEmpty() ? 
+                                                user.getAvatar() : 
+                                                "https://ui-avatars.com/api/?name=" + user.getFullName() + "&background=random" %>" 
+                                                 alt="avatar" 
+                                                 class="w-8 h-8 rounded-full border-2 border-white"/>
                                             <span class="font-medium text-gray-700">Xin chào, <%= user.getFullName() %></span>
-                                            <i class="fas fa-chevron-down text-gray-500 text-sm transition-transform duration-200"
+                                          href="logout" 
+                                               class="flex items-center px-4 py-2 text-red-600 hover:bg-gray-100 transition-colors duration-200">
+                                                <i class="fas fa-sign-out-alt text-red-600 w-5"></i>
+                                                <span cla   <i class="fas fa-chevron-down text-gray-500 text-sm transition-transform duration-200"
                                                :class="{ 'transform rotate-180': isOpen }"></i>
                                         </button>
                                         
@@ -977,6 +985,7 @@
                                             </a>
                                         </div>
                                     </div>
+                                          <% } else { %>
                                     <div class="flex items-center space-x-4">
                                         <a href="login" class="text-gray-600 hover:text-gray-900">
                                             <i class="fas fa-sign-in-alt mr-1"></i>
@@ -988,6 +997,7 @@
                                             Đăng ký
                                         </a>
                                     </div>
+                                    <% } %>
                             </div>
                         </div>
                     </div>
@@ -1041,6 +1051,13 @@
                                     <select name="departure" class="w-full pl-10 pr-4 py-2 border rounded hover:border-blue-500 focus:border-blue-500 focus:outline-none transition">
                                         <option value="">Khởi hành từ</option>
                                             <option>Điểm đến</option>
+                                            <% 
+                                        TourDAO tourDAO = new TourDAO();
+                                        List<City> cities = tourDAO.getAllCities();
+                                        for(City city : cities) { 
+                                        %>
+                                            <option value="<%= city.getId() %>"><%= city.getName() %></option>
+                                        <% } %>
                                     </select>
                                     <button type="submit" class="bg-blue-500 text-white px-8 rounded hover:bg-blue-600 transition">Tìm</button>
                                 </div>
