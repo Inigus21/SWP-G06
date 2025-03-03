@@ -1,8 +1,11 @@
 
+
 <%@ page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ page import="dao.TourDAO" %>
 <%@ page import="model.City" %>
 <%@ page import="java.util.List" %>
+
+
 
 <!DOCTYPE html>
 <html>
@@ -945,7 +948,9 @@
                                                  alt="avatar" 
                                                  class="w-8 h-8 rounded-full border-2 border-white"/>
                                             <span class="font-medium text-gray-700">Xin chào, <%= user.getFullName() %></span>
+
                                             <i class="fas fa-chevron-down text-gray-500 text-sm transition-transform duration-200"
+
                                                :class="{ 'transform rotate-180': isOpen }"></i>
                                         </button>
                                         
