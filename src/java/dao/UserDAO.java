@@ -109,4 +109,37 @@ public class UserDAO {
         }
         return null;
     }
+    public void updateProfile(User user) throws SQLException, ClassNotFoundException {
+        String sql = "UPDATE Account SET full_name=?, phone=?, address=?, gender=?, dob=? WHERE id=?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, user.getFullName());
+            ps.setString(2, user.getPhone());
+            ps.setString(3, user.getAddress());
+            ps.setBoolean(4, user.isGender());
+            ps.setString(5, user.getDob());
+            ps.setInt(6, user.getId());
+            ps.executeUpdate();
+        }
+    }
+    public void updatePassword(int userId, String newPassword) throws SQLException, ClassNotFoundException, NoSuchAlgorithmException {
+        String sql = "UPDATE Account SET password=? WHERE id=?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            String hashedPassword = PasswordHashing.hashPassword(newPassword);
+            ps.setString(1, hashedPassword);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        }
+    }
+     public void updateAvatar(int userId, String avatarPath) throws SQLException, ClassNotFoundException {
+        String sql = "UPDATE Account SET avatar=? WHERE id=?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, avatarPath);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        }
+    }
+
 }

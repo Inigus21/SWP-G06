@@ -46,8 +46,82 @@ public class UserProfileServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-       
+         request.setCharacterEncoding("UTF-8");
+        HttpSession session = request.getSession();
+        User sessionUser = (User) session.getAttribute("user");
+        
+        if (sessionUser == null) {
+            response.sendRedirect("login");
+            return;
+        }
+        
+        String action = request.getParameter("action");
+        try {
+            UserDAO userDAO = new UserDAO();
+            
+            if ("update-profile".equals(action)) {
+                User user = new User();
+                user.setId(sessionUser.getId());
+                user.setFullName(request.getParameter("fullName"));
+                user.setPhone(request.getParameter("phone"));
+                user.setAddress(request.getParameter("address"));
+                user.setGenderFromText(request.getParameter("gender"));
+                user.setDob(request.getParameter("dob"));
+                
+                userDAO.updateProfile(user);
+                session.setAttribute("user", userDAO.getUserById(user.getId()));
+                request.setAttribute("success", "Cập nhật thông tin thành công");
+                
+            } else if ("update-avatar".equals(action)) {
+                Part filePart = request.getPart("avatar");
+                String fileName = getFileName(filePart);
+                
+                if (fileName != null && !fileName.isEmpty()) {
+                    String uploadDir = getServletContext().getRealPath("/uploads/avatars");
+                    File uploadDirFile = new File(uploadDir);
+                    if (!uploadDirFile.exists()) {
+                        uploadDirFile.mkdirs();
+                    }
+                    
+                    String uniqueFileName = System.currentTimeMillis() + "_" + fileName;
+                    String filePath = uploadDir + File.separator + uniqueFileName;
+                    filePart.write(filePath);
+                    
+                    userDAO.updateAvatar(sessionUser.getId(), "uploads/avatars/" + uniqueFileName);
+                    session.setAttribute("user", userDAO.getUserById(sessionUser.getId()));
+                    request.setAttribute("success", "Cập nhật ảnh đại diện thành công");
+                }
+                
+            } else if ("change-password".equals(action)) {
+                String currentPassword = request.getParameter("currentPassword");
+                String newPassword = request.getParameter("newPassword");
+                String confirmPassword = request.getParameter("confirmPassword");
+                
+                if (!newPassword.equals(confirmPassword)) {
+                    request.setAttribute("error", "Mật khẩu xác nhận không khớp");
+                } else {
+                    userDAO.updatePassword(sessionUser.getId(), newPassword);
+                    request.setAttribute("success", "Đổi mật khẩu thành công");
+                }
+            }
+            
+            request.getRequestDispatcher("user-profile.jsp").forward(request, response);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("error", "Đã xảy ra lỗi trong quá trình xử lý");
+            request.getRequestDispatcher("user-profile.jsp").forward(request, response);
+        }
     }
-    
+        private String getFileName(Part part) {
+        String contentDisp = part.getHeader("content-disposition");
+        String[] tokens = contentDisp.split(";");
+        for (String token : tokens) {
+            if (token.trim().startsWith("filename")) {
+                return token.substring(token.indexOf("=") + 2, token.length() - 1);
+            }
+        }
+        return "";
+    }
   
 } 
