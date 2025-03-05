@@ -18,6 +18,18 @@ import model.User;
 import utils.DBContext;
 import utils.PasswordHashing;
 public class UserDAO {
+    public void register(User user) throws SQLException, ClassNotFoundException, NoSuchAlgorithmException {
+        String sql = "INSERT INTO Account (full_name, email, password, roleId, is_delete, create_date) VALUES (?, ?, ?, 1, 0, GETDATE())";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, user.getFullName().trim());
+            ps.setString(2, user.getEmail().trim());
+            String hashedPassword = PasswordHashing.hashPassword(user.getPassword());
+            System.out.println("Registering with hash: " + hashedPassword);
+            ps.setString(3, hashedPassword);
+            ps.executeUpdate();
+        }
+    }
     public User login(String email, String password) throws SQLException, ClassNotFoundException {
         String sql = "SELECT * FROM Account WHERE email = ? AND is_delete = 0";
         try (Connection conn = DBContext.getConnection();
