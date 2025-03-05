@@ -100,6 +100,16 @@ public class UserDAO {
             ps.executeUpdate();
         }
     }
+     
+    public void updateGoogleId(int userId, String googleId) throws SQLException, ClassNotFoundException {
+        String sql = "UPDATE Account SET googleID = ? WHERE id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, googleId);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        }
+    }
 
     public static void main(String[] args) {
         try {
