@@ -22,11 +22,16 @@ public class LoginServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+    handleNormalLogin(request, response);
+}
+private void handleNormalLogin(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
             String email = request.getParameter("email");
             String password = request.getParameter("password");
             String remember = request.getParameter("remember");
+            String prevPage = request.getParameter("prevPage");
             
             UserDAO userDAO = new UserDAO();
             User user = userDAO.login(email, password);
@@ -39,7 +44,14 @@ public class LoginServlet extends HttpServlet {
                     // Implement remember me functionality if needed
                 }
                 
-                response.sendRedirect("home.jsp");
+                // Redirect to admin page if user is an admin (roleId = 2)
+                if (user.getRoleId() == 2) {
+                    response.sendRedirect(request.getContextPath() + "/admin");
+                } else if (prevPage != null && !prevPage.isEmpty() && !prevPage.contains("/login") && !prevPage.contains("/register")) {
+                    response.sendRedirect(prevPage);
+                } else {
+                    response.sendRedirect("home.jsp");
+                }
             } else {
                 request.setAttribute("error", "Email hoặc mật khẩu không đúng");
                 request.getRequestDispatcher("login.jsp").forward(request, response);
@@ -49,4 +61,5 @@ public class LoginServlet extends HttpServlet {
             request.getRequestDispatcher("login.jsp").forward(request, response);
         }
     }
+    
 } 
