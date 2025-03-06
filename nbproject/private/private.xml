@@ -3,7 +3,22 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/TourProject/swp391-group6-explore-vietnam-tours/web/login.jsp</file>
+            <file>file:/D:/TourProject/swp391-group6-explore-vietnam-tours/src/java/controller/LoginServlet.java</file>
+            <file>file:/D:/TourProject/swp391-group6-explore-vietnam-tours/web/components/footer.jsp</file>
+            <file>file:/D:/TourProject/swp391-group6-explore-vietnam-tours/web/WEB-INF/web.xml</file>
+            <file>file:/D:/TourProject/swp391-group6-explore-vietnam-tours/web/register.jsp</file>
+            <file>file:/D:/TourProject/swp391-group6-explore-vietnam-tours/src/java/model/Category.java</file>
+            <file>file:/D:/TourProject/swp391-group6-explore-vietnam-tours/src/java/filter/AuthenticationFilter.java</file>
+            <file>file:/D:/TourProject/swp391-group6-explore-vietnam-tours/src/java/utils/DBContext.java</file>
+            <file>file:/D:/TourProject/swp391-group6-explore-vietnam-tours/web/components/header.jsp</file>
+            <file>file:/D:/TourProject/swp391-group6-explore-vietnam-tours/src/java/model/User.java</file>
+            <file>file:/D:/TourProject/swp391-group6-explore-vietnam-tours/src/java/dao/UserDAO.java</file>
+            <file>file:/D:/TourProject/swp391-group6-explore-vietnam-tours/src/java/controller/RegisterServlet.java</file>
+            <file>file:/D:/TourProject/swp391-group6-explore-vietnam-tours/web/META-INF/context.xml</file>
+            <file>file:/D:/TourProject/swp391-group6-explore-vietnam-tours/src/java/dao/TourDAO.java</file>
+            <file>file:/D:/TourProject/swp391-group6-explore-vietnam-tours/src/java/model/City.java</file>
+            <file>file:/D:/TourProject/swp391-group6-explore-vietnam-tours/src/java/utils/PasswordHashing.java</file>
+            <file>file:/D:/TourProject/swp391-group6-explore-vietnam-tours/src/java/model/Tour.java</file>
         </group>
     </open-files>
 </project-private>
