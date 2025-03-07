@@ -359,7 +359,6 @@ public class TourDAO {
         }
         return 0;
     }
-
     public List<Tour> getTopDiscountedCities() throws SQLException, ClassNotFoundException {
         List<Tour> topDiscountedTours = new ArrayList<>();
         String sql = "WITH RankedTours AS ("

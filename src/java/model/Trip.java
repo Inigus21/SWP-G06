@@ -123,10 +123,4 @@ public class Trip {
     public void setIsDelete(boolean isDelete) {
         this.isDelete = isDelete;
     }
-
-    @Override
-    public String toString() {
-        return "Trip{" + "id=" + id + ", tourId=" + tourId + ", departureCityId=" + departureCityId + ", destinationCityId=" + destinationCityId + ", departureDate=" + departureDate + ", returnDate=" + returnDate + ", startTime=" + startTime + ", endTime=" + endTime + ", availableSlot=" + availableSlot + ", status=" + status + ", createdDate=" + createdDate + ", deletedDate=" + deletedDate + ", isDelete=" + isDelete + '}';
-    }
-    
 } 
