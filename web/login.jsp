@@ -668,7 +668,7 @@
         <div class="w-[800px] flex bg-white rounded-lg overflow-hidden shadow-xl">
             <div class="w-1/2 relative">
                 <div class="absolute inset-0 bg-gradient-to-br from-blue-400 to-blue-600"> <img
-                        src=""
+                        src="image/img1.png"
                         class="w-full h-full object-cover opacity-50" alt="Ocean background" /> </div>
                 <div class="relative p-12 text-white">
                     <h1 class="font-serif text-4xl italic"></h1>
