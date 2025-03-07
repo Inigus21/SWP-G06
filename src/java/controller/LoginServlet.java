@@ -28,17 +28,18 @@ public class LoginServlet extends HttpServlet {
         request.getRequestDispatcher("login.jsp").forward(request, response);
     }
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String action = request.getParameter("action");
-
-        if ("google_login".equals(action)) {
-            handleGoogleLogin(request, response);
-        } else {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid action");
-        }
+  @Override
+protected void doPost(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+    String action = request.getParameter("action");
+    
+    if ("google_login".equals(action)) {
+        handleGoogleLogin(request, response);
+    } else {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid action");
     }
+}
+
 
     private void handleGoogleLogin(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
