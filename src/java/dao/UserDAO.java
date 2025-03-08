@@ -150,6 +150,7 @@ public class UserDAO {
         }
     }
 
+
     public User getUserById(int id) throws SQLException, ClassNotFoundException {
         String sql = "SELECT * FROM Account WHERE id = ? AND is_delete = 0";
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -209,3 +210,4 @@ public class UserDAO {
     }
 
 }
+
