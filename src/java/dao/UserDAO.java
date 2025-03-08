@@ -4,10 +4,6 @@
  */
 package dao;
 
-/**
- *
- * @author Huy Lee
- */
 
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
