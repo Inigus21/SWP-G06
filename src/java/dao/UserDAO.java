@@ -5,6 +5,8 @@
 package dao;
 
 
+
+
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,12 +15,34 @@ import java.sql.SQLException;
 import model.User;
 import utils.DBContext;
 import utils.PasswordHashing;
+
 public class UserDAO {
+
+    public boolean checkEmailExists(String email) throws SQLException, ClassNotFoundException {
+        String sql = "SELECT email FROM Account WHERE email = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    public void register(User user) throws SQLException, ClassNotFoundException, NoSuchAlgorithmException {
+        String sql = "INSERT INTO Account (full_name, email, password, roleId, is_delete, create_date) VALUES (?, ?, ?, 1, 0, GETDATE())";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, user.getFullName().trim());
+            ps.setString(2, user.getEmail().trim());
+            String hashedPassword = PasswordHashing.hashPassword(user.getPassword());
+            System.out.println("Registering with hash: " + hashedPassword);
+            ps.setString(3, hashedPassword);
+            ps.executeUpdate();
+        }
+    }
 
     public User login(String email, String password) throws SQLException, ClassNotFoundException {
         String sql = "SELECT * FROM Account WHERE email = ? AND is_delete = 0";
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -27,7 +51,7 @@ public class UserDAO {
                         String inputHash = PasswordHashing.hashPassword(password);
                         System.out.println("Stored hash: " + storedHash);
                         System.out.println("Input hash: " + inputHash);
-                        
+
                         if (storedHash.equals(inputHash)) {
                             User user = new User();
                             user.setId(rs.getInt("id"));
@@ -58,11 +82,10 @@ public class UserDAO {
         }
         return null;
     }
-    
+
     public User findByEmail(String email) throws SQLException, ClassNotFoundException {
         String sql = "SELECT * FROM Account WHERE email = ? AND is_delete = 0";
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -85,10 +108,10 @@ public class UserDAO {
         }
         return null;
     }
-     public void registerGoogleUser(User user) throws SQLException, ClassNotFoundException {
+
+    public void registerGoogleUser(User user) throws SQLException, ClassNotFoundException {
         String sql = "INSERT INTO Account (full_name, email, roleId, googleID, is_delete, create_date) VALUES (?, ?, ?, ?, 0, GETDATE())";
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, user.getFullName().trim());
             ps.setString(2, user.getEmail().trim());
             ps.setInt(3, user.getRoleId());
@@ -96,11 +119,10 @@ public class UserDAO {
             ps.executeUpdate();
         }
     }
-     
+
     public void updateGoogleId(int userId, String googleId) throws SQLException, ClassNotFoundException {
         String sql = "UPDATE Account SET googleID = ? WHERE id = ?";
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, googleId);
             ps.setInt(2, userId);
             ps.executeUpdate();
@@ -110,28 +132,28 @@ public class UserDAO {
     public static void main(String[] args) {
         try {
             UserDAO dao = new UserDAO();
-            
+
             User newUser = new User("Test User", "test@gmail.com", "password123", 1);
             System.out.println("User registered successfully");
-            
+
             Thread.sleep(1000);
-            
+
             User loggedUser = dao.login("test@gmail.com", "password123");
             if (loggedUser != null) {
                 System.out.println("Login successful for: " + loggedUser.getFullName());
             } else {
                 System.out.println("Login failed");
             }
-            
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    
+
+
     public User getUserById(int id) throws SQLException, ClassNotFoundException {
         String sql = "SELECT * FROM Account WHERE id = ? AND is_delete = 0";
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -154,10 +176,10 @@ public class UserDAO {
         }
         return null;
     }
+
     public void updateProfile(User user) throws SQLException, ClassNotFoundException {
         String sql = "UPDATE Account SET full_name=?, phone=?, address=?, gender=?, dob=? WHERE id=?";
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, user.getFullName());
             ps.setString(2, user.getPhone());
             ps.setString(3, user.getAddress());
@@ -167,20 +189,20 @@ public class UserDAO {
             ps.executeUpdate();
         }
     }
+
     public void updatePassword(int userId, String newPassword) throws SQLException, ClassNotFoundException, NoSuchAlgorithmException {
         String sql = "UPDATE Account SET password=? WHERE id=?";
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             String hashedPassword = PasswordHashing.hashPassword(newPassword);
             ps.setString(1, hashedPassword);
             ps.setInt(2, userId);
             ps.executeUpdate();
         }
     }
-     public void updateAvatar(int userId, String avatarPath) throws SQLException, ClassNotFoundException {
+
+    public void updateAvatar(int userId, String avatarPath) throws SQLException, ClassNotFoundException {
         String sql = "UPDATE Account SET avatar=? WHERE id=?";
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, avatarPath);
             ps.setInt(2, userId);
             ps.executeUpdate();
@@ -188,3 +210,4 @@ public class UserDAO {
     }
 
 }
+

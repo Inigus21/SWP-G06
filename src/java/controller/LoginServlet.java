@@ -19,6 +19,7 @@ import com.google.gson.JsonObject;
 
 @WebServlet(name = "LoginServlet", urlPatterns = {"/login"})
 public class LoginServlet extends HttpServlet {
+
     private static final String GOOGLE_CLIENT_ID = "426229865715-6j4c6434pinslumq0m1l8mqjkcf6i3fv.apps.googleusercontent.com"; // Replace with your Google Client ID
 
     @Override
@@ -27,7 +28,7 @@ public class LoginServlet extends HttpServlet {
         request.getRequestDispatcher("login.jsp").forward(request, response);
     }
 
-    @Override
+ @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = request.getParameter("action");
@@ -38,8 +39,8 @@ public class LoginServlet extends HttpServlet {
             handleNormalLogin(request, response);
         }
     }
-    
-    private void handleNormalLogin(HttpServletRequest request, HttpServletResponse response)
+
+ private void handleNormalLogin(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
             String email = request.getParameter("email");
@@ -75,16 +76,15 @@ public class LoginServlet extends HttpServlet {
             request.getRequestDispatcher("login.jsp").forward(request, response);
         }
     }
-    
     private void handleGoogleLogin(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
             String idTokenString = request.getParameter("credential");
             String prevPage = request.getParameter("prevPage");
-            
+
             GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
-                .setAudience(Collections.singletonList(GOOGLE_CLIENT_ID))
-                .build();
+                    .setAudience(Collections.singletonList(GOOGLE_CLIENT_ID))
+                    .build();
 
             GoogleIdToken idToken = verifier.verify(idTokenString);
             if (idToken != null) {
@@ -92,10 +92,10 @@ public class LoginServlet extends HttpServlet {
                 String email = payload.getEmail();
                 String googleId = payload.getSubject();
                 String name = (String) payload.get("name");
-                
+
                 UserDAO userDAO = new UserDAO();
                 User user = userDAO.findByEmail(email);
-                
+
                 if (user == null) {
                     // Create new user
                     user = new User();
@@ -110,11 +110,11 @@ public class LoginServlet extends HttpServlet {
                     user.setGoogleId(googleId);
                     userDAO.updateGoogleId(user.getId(), googleId);
                 }
-                
+
                 // Set session
                 HttpSession session = request.getSession();
                 session.setAttribute("user", user);
-                
+
                 // Redirect to admin page if user is an admin (roleId = 2)
                 if (user.getRoleId() == 2) {
                     response.sendRedirect(request.getContextPath() + "/admin");
@@ -133,4 +133,4 @@ public class LoginServlet extends HttpServlet {
             e.printStackTrace();
         }
     }
-} 
+}
