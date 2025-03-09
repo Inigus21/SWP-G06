@@ -42,7 +42,8 @@ public class UserDAO {
 
     public User login(String email, String password) throws SQLException, ClassNotFoundException {
         String sql = "SELECT * FROM Account WHERE email = ? AND is_delete = 0";
-        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
