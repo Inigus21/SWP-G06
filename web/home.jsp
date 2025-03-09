@@ -8,7 +8,7 @@
     List<Tour> topDiscountedTours = tourDAO.getTopDiscountedCities();
     List<City> cities = tourDAO.getAllCities();
 %>
-<!DOCTYPE html>
+    <!DOCTYPE html>
     <html lang="en">
 
     <head>
@@ -1065,18 +1065,28 @@
                         <div class="flex justify-center gap-16 mb-16">
                             <div class="text-center group cursor-pointer">
                                 <div class="bg-blue-50 p-4 rounded-lg mb-2 group-hover:bg-blue-100 transition">
-                                    <span class="material-symbols-outlined text-3xl">experience</span> </div>
-                                <p>Du lịch trải nghiệm</p>
+                                    <span class="material-symbols-outlined text-3xl">hiking</span> </div>
+                                <p>Du lịch sinh thái</p>
                             </div>
                             <div class="text-center group cursor-pointer">
                                 <div class="bg-blue-50 p-4 rounded-lg mb-2 group-hover:bg-blue-100 transition">
-                                    <span class="material-symbols-outlined text-3xl">discover</span> </div>
-                                <p>Du lịch khám phá</p>
+                                    <span class="material-symbols-outlined text-3xl">museum</span> </div>
+                                <p>Du lịch văn hóa</p>
                             </div>
                             <div class="text-center group cursor-pointer">
                                 <div class="bg-blue-50 p-4 rounded-lg mb-2 group-hover:bg-blue-100 transition">
-                                    <span class="material-symbols-outlined text-3xl">relaxing</span> </div>
+                                    <span class="material-symbols-outlined text-3xl">landscape</span> </div>
                                 <p>Du lịch nghỉ dưỡng</p>
+                            </div>
+                            <div class="text-center group cursor-pointer">
+                                <div class="bg-blue-50 p-4 rounded-lg mb-2 group-hover:bg-blue-100 transition">
+                                    <span class="material-symbols-outlined text-3xl">attractions</span> </div>
+                                <p>Du lịch giải trí</p>
+                            </div>
+                            <div class="text-center group cursor-pointer">
+                                <div class="bg-blue-50 p-4 rounded-lg mb-2 group-hover:bg-blue-100 transition">
+                                    <span class="material-symbols-outlined text-3xl">diversity_3</span> </div>
+                                <p>Du lịch gia đình</p>
                             </div>
                         </div>
                         <section class="mb-16">
