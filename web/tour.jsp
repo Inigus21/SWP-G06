@@ -1,4 +1,3 @@
-
 <%@ page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page import="java.util.*" %>
@@ -25,6 +24,36 @@
 
             @import url(https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css);
 
+            /* Toast notification styles */
+            .toast {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 24px;
+                border-radius: 4px;
+                z-index: 9999;
+                color: white;
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                opacity: 0;
+                transform: translateY(-20px);
+                transition: opacity 0.3s, transform 0.3s;
+            }
+
+            .toast.error {
+                background-color: #ef4444;
+            }
+
+            .toast.success {
+                background-color: #10b981;
+            }
+
+            .toast.show {
+                opacity: 1;
+                transform: translateY(0);
+            }
         </style>   
     </head>
 
@@ -50,13 +79,17 @@
                             }
                             }
         %>
+
+        <!-- Toast notification -->
+        <div id="toast" class="toast" role="alert"></div>
+
         <div id="webcrumbs">
             <div class="font-sans">
                 <header
                     class="bg-sky-500 flex flex-col md:flex-row justify-between items-center py-2 px-4 text-white text-sm w-full">
                     <div class="flex items-center mb-2 md:mb-0">
                         <span class="material-symbols-outlined mr-1">call</span>
-                        <span>1900 1839 - Từ 8:00 - 11:00 hàng ngày</span>
+                        <span>1900 1839 - Từ 8:00 - 23:00 hàng ngày</span>
                     </div>
                     <div>
                         <% if (session.getAttribute("user") !=null) { model.User
@@ -117,14 +150,12 @@
 
                 <nav class="py-4 px-4 md:px-8">
                     <div class="flex justify-center items-center">
-                        <a href="./home.jsp" class="flex items-center">
+                        <a href="./home" class="flex items-center">
                             <img src="./image/logo.svg" alt="TourNest Logo"
                                  class="h-16 md:h-24 w-auto" />
                         </a>
                     </div>
-                    <p class="text-center mt-2">Hãy đến và trải nghiệm những
-                        dịch vụ tour du lịch của Tour<span
-                            class="text-sky-500">Nest</span></p>
+                    <p class="text-center mt-2">Hãy đến và trải nghiệm những dịch vụ tour du lịch của TourNest</p>
                 </nav>
 
                 <div class="flex flex-col lg:flex-row gap-6 p-4 lg:p-8">
@@ -133,7 +164,6 @@
                         <div class="bg-white p-4 rounded-lg">
                             <h3 class="text-base mb-4">Bộ lọc tìm kiếm</h3>
                             <form action="tour" method="GET" class="space-y-4">
-
                                 <!-- Search by name -->
                                 <div class="mb-4">
                                     <input type="text" name="search"
@@ -336,8 +366,7 @@
                                 departureDates =
                                 tourDAO.getDepartureDates(tour.getId());
                             %>
-                            <div
-                                class="bg-white rounded-lg overflow-hidden border hover:shadow-lg transition">
+                            <div class="bg-white rounded-lg overflow-hidden border hover:shadow-lg transition">
                                 <div class="flex">
                                     <div class="w-[300px] relative">
                                         <img src="<%= tour.getImg() %>"
@@ -389,17 +418,33 @@
                                                 <div
                                                     class="text-sm text-gray-600">
                                                     Giá từ:</div>
-                                                <div
-                                                    class="text-red-500 font-bold">
-                                                    <%= String.format("%,.0f",
-                                                        tour.getPriceAdult())
-                                                    %> đ
+                                                    <% 
+                                                        Promotion promotion = tourDAO.getActivePromotion(tour.getId());
+                                                        if (promotion != null) {
+                                                            double discountPercent = promotion.getDiscountPercentage() / 100.0;
+                                                            double discountedPrice = tour.getPriceAdult() * (1 - discountPercent);
+                                                    %>
+                                                <div class="text-gray-500 line-through text-sm">
+                                                    <%= String.format("%,.0f", tour.getPriceAdult()) %> đ
                                                 </div>
+                                                <div class="text-red-500 font-bold">
+                                                    <%= String.format("%,.0f", discountedPrice) %> đ
+                                                </div>
+                                                <div class="text-red-500 text-sm">
+                                                    Giảm <%= String.format("%.0f", promotion.getDiscountPercentage()) %>%
+                                                </div>
+                                                <% } else { %>
+                                                <div class="text-red-500 font-bold">
+                                                    <%= String.format("%,.0f", tour.getPriceAdult()) %> đ
+                                                </div>
+                                                <% } %>
                                             </div>
-                                            <a href="tour-detail?id=<%= tour.getId() %>"
-                                               class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
-                                                Xem chi tiết
-                                            </a>
+                                            <div class="flex flex-col space-y-2">
+                                                <a href="tour-detail?id=<%= tour.getId() %>"
+                                                   class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+                                                    Xem chi tiết
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -582,9 +627,9 @@
                                 <li> <a href="#"
                                         class="hover:text-sky-500 transition">Trợ
                                         giúp</a> </li>
-                                <li> <a href="#"
+                                <li> <a href="./privacy.jsp"
                                         class="hover:text-sky-500 transition">Chính
-                                        sách bảo mật</a> </li>
+                                        sách riêng tư</a> </li>
                                 <li> <a href="#"
                                         class="hover:text-sky-500 transition">Điều
                                         khoản sử dụng</a> </li>
@@ -614,5 +659,52 @@
         </div>
         <% } %>
     </body>
+
+    <script>
+        function bookTour(tourId) {
+            // Check if user is logged in
+        <% if (session.getAttribute("user") == null) { %>
+            // User not logged in, redirect to login page
+            window.location.href = "login?redirect=booking&tourId=" + tourId;
+        <% } else { %>
+            // User is logged in, check tour availability
+            fetch('check-tour-availability?tourId=' + tourId)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.available) {
+                            // Tour is available, redirect to booking page
+                            window.location.href = "booking?tourId=" + tourId;
+                        } else {
+                            // Tour is not available, show toast notification
+                            showToast('error', data.message || 'Rất tiếc, tour này hiện không có chỗ trống hoặc lịch trình.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking tour availability:', error);
+                        showToast('error', 'Có lỗi xảy ra, vui lòng thử lại sau.');
+                    });
+        <% } %>
+        }
+
+        function showToast(type, message) {
+            const toast = document.getElementById('toast');
+            toast.className = 'toast ' + type + ' show';
+
+            // Add icon based on type
+            let icon = '';
+            if (type === 'error') {
+                icon = '<i class="fas fa-exclamation-circle"></i>';
+            } else if (type === 'success') {
+                icon = '<i class="fas fa-check-circle"></i>';
+            }
+
+            toast.innerHTML = icon + message;
+
+            // Hide toast after 3 seconds
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000);
+        }
+    </script>
 
 </html>
