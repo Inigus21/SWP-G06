@@ -228,3 +228,268 @@ public class AdminTourController extends HttpServlet {
             request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
         }
     }
+    private void createTour(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            // Get form parameters
+            String name = request.getParameter("name");
+            String img = request.getParameter("img");
+            double priceAdult = Double.parseDouble(request.getParameter("priceAdult"));
+            double priceChildren = Double.parseDouble(request.getParameter("priceChildren"));
+            String duration = request.getParameter("duration");
+            int departureLocationId = Integer.parseInt(request.getParameter("departureLocationId"));
+            String suitableFor = request.getParameter("suitableFor");
+            String bestTime = request.getParameter("bestTime");
+            String cuisine = request.getParameter("cuisine");
+            String region = request.getParameter("region");
+            String sightseeing = request.getParameter("sightseeing");
+            int maxCapacity = Integer.parseInt(request.getParameter("maxCapacity"));
+            int categoryId = Integer.parseInt(request.getParameter("categoryId"));
+            
+            // Create Tour object
+            Tour tour = new Tour();
+            tour.setName(name);
+            tour.setImg(img);
+            tour.setPriceAdult(priceAdult);
+            tour.setPriceChildren(priceChildren);
+            tour.setDuration(duration);
+            tour.setDepartureLocationId(departureLocationId);
+            tour.setSuitableFor(suitableFor);
+            tour.setBestTime(bestTime);
+            tour.setCuisine(cuisine);
+            tour.setRegion(region);
+            tour.setSightseeing(sightseeing);
+            tour.setMaxCapacity(maxCapacity);
+            tour.setCategoryId(categoryId);
+            
+            // Add tour to database
+            TourDAO tourDAO = new TourDAO();
+            int tourId = tourDAO.createTour(tour);
+            
+            if (tourId > 0) {
+                // Success message
+                request.getSession().setAttribute("successMessage", "Tour created successfully!");
+                // Redirect to tour details page
+                response.sendRedirect(request.getContextPath() + "/admin/tours/view?id=" + tourId);
+            } else {
+                request.setAttribute("errorMessage", "Failed to create tour. Please try again.");
+                showCreateForm(request, response);
+            }
+        } catch (NumberFormatException e) {
+            request.setAttribute("errorMessage", "Invalid input: " + e.getMessage());
+            showCreateForm(request, response);
+        } catch (Exception e) {
+            request.setAttribute("errorMessage", "Error creating tour: " + e.getMessage());
+            showCreateForm(request, response);
+        }
+    }
+    
+    private void updateTour(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            int tourId = Integer.parseInt(request.getParameter("tourId"));
+            String name = request.getParameter("name");
+            String img = request.getParameter("img");
+            
+            // Parse numeric values safely with defaults if missing
+            double priceAdult = 0;
+            try {
+                priceAdult = Double.parseDouble(request.getParameter("priceAdult"));
+            } catch (Exception e) {
+                // Use default or log error
+            }
+            
+            double priceChildren = 0;
+            try {
+                priceChildren = Double.parseDouble(request.getParameter("priceChildren"));
+            } catch (Exception e) {
+                // Use default or log error
+            }
+            
+            String duration = request.getParameter("duration");
+            String suitableFor = request.getParameter("suitableFor");
+            String bestTime = request.getParameter("bestTime");
+            String cuisine = request.getParameter("cuisine");
+            String region = request.getParameter("region");
+            String sightseeing = request.getParameter("sightseeing");
+            
+            // Set defaults for potentially missing parameters
+            int availableSlot = 0;
+            String availableSlotStr = request.getParameter("availableSlot");
+            if (availableSlotStr != null && !availableSlotStr.isEmpty()) {
+                try {
+                    availableSlot = Integer.parseInt(availableSlotStr);
+                } catch (NumberFormatException e) {
+                    // Use default
+                }
+            }
+            
+            int maxCapacity = 0;
+            String maxCapacityStr = request.getParameter("maxCapacity");
+            if (maxCapacityStr != null && !maxCapacityStr.isEmpty()) {
+                try {
+                    maxCapacity = Integer.parseInt(maxCapacityStr);
+                } catch (NumberFormatException e) {
+                    // Use default
+                }
+            }
+            
+            int departureLocationId = 0;
+            String departureLocationIdStr = request.getParameter("departureLocationId");
+            if (departureLocationIdStr != null && !departureLocationIdStr.isEmpty()) {
+                try {
+                    departureLocationId = Integer.parseInt(departureLocationIdStr);
+                } catch (NumberFormatException e) {
+                    // Use default
+                }
+            }
+            
+            String departureCity = request.getParameter("departureCity");
+            if (departureCity == null) {
+                departureCity = "";
+            }
+            
+            int categoryId = 0;
+            String categoryIdStr = request.getParameter("categoryId");
+            if (categoryIdStr != null && !categoryIdStr.isEmpty()) {
+                try {
+                    categoryId = Integer.parseInt(categoryIdStr);
+                } catch (NumberFormatException e) {
+                    // Use default
+                }
+            }
+            
+            String destinationCity = request.getParameter("destinationCity");
+            if (destinationCity == null) {
+                destinationCity = "";
+            }
+            
+            double discountPercentage = 0;
+            String discountPercentageStr = request.getParameter("discountPercentage");
+            if (discountPercentageStr != null && !discountPercentageStr.isEmpty()) {
+                try {
+                    discountPercentage = Double.parseDouble(discountPercentageStr);
+                } catch (NumberFormatException e) {
+                    // Use default
+                }
+            }
+
+            // Validate required fields
+            if (name == null || name.isEmpty() || img == null || img.isEmpty() || duration == null || duration.isEmpty()) {
+                throw new IllegalArgumentException("Required basic tour information is missing.");
+            }
+
+            TourDAO tourDAO = new TourDAO();
+            Tour tour = new Tour(tourId, name, img, region, priceChildren, priceAdult, suitableFor, bestTime, cuisine, duration, sightseeing, availableSlot, maxCapacity, departureLocationId, departureCity, categoryId, destinationCity, discountPercentage);
+            tourDAO.updateTour(tour);
+
+            // Set success message
+            HttpSession session = request.getSession();
+            session.setAttribute("successMessage", "Tour updated successfully!");
+            
+            response.sendRedirect(request.getContextPath() + "/admin/tours");
+        } catch (Exception e) {
+            request.setAttribute("errorMessage", "Error updating tour: " + e.getMessage());
+            request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+        }
+    }
+    
+    private void deleteTour(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Implementation for deleting a tour
+        // This would involve marking the tour as deleted in the database
+        response.sendRedirect(request.getContextPath() + "/admin/tours");
+    }
+    
+    private void viewTourTrips(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            int tourId = Integer.parseInt(request.getParameter("id"));
+            int page = 1;
+            int itemsPerPage = 10;
+            
+            // Get page and itemsPerPage parameters
+            String pageParam = request.getParameter("page");
+            String itemsPerPageParam = request.getParameter("itemsPerPage");
+            
+            if (pageParam != null && !pageParam.isEmpty()) {
+                try {
+                    page = Integer.parseInt(pageParam);
+                    if (page < 1) page = 1;
+                } catch (NumberFormatException e) {
+                    // If page is not a valid number, default to 1
+                }
+            }
+            
+            if (itemsPerPageParam != null && !itemsPerPageParam.isEmpty()) {
+                try {
+                    itemsPerPage = Integer.parseInt(itemsPerPageParam);
+                    if (itemsPerPage < 5) itemsPerPage = 5;
+                    if (itemsPerPage > 100) itemsPerPage = 100;
+                } catch (NumberFormatException e) {
+                    // If itemsPerPage is not a valid number, default to 10
+                }
+            }
+            
+            TourDAO tourDAO = new TourDAO();
+            TripDAO tripDAO = new TripDAO();
+            CityDAO cityDAO = new CityDAO();
+            
+            Tour tour = tourDAO.getTourById(tourId);
+            
+            // Get city information
+            City departureCity = cityDAO.getCityById(tour.getDepartureLocationId());
+            
+            // Get list of all cities to find destination
+            List<City> allCities = cityDAO.getAllCities();
+            City destinationCity = null;
+            for (City city : allCities) {
+                if (city.getName().equals(tour.getDestinationCity())) {
+                    destinationCity = city;
+                    break;
+                }
+            }
+            
+            // Get total count of trips for this tour
+            int totalTrips = tripDAO.getTotalTripsByTourId(tourId);
+            
+            // Get paginated list of trips
+            List<Trip> trips = tripDAO.getTripsByTourIdPaginated(tourId, page, itemsPerPage);
+            
+            // Format trip times for proper display in time inputs
+            for (Trip trip : trips) {
+                // Ensure startTime and endTime are in the proper format for time inputs (HH:MM)
+                if (trip.getStartTime() != null && trip.getStartTime().contains(".")) {
+                    trip.setStartTime(trip.getStartTime().split("\\.")[0]);
+                }
+                if (trip.getEndTime() != null && trip.getEndTime().contains(".")) {
+                    trip.setEndTime(trip.getEndTime().split("\\.")[0]);
+                }
+                
+                // Ensure times are in proper format
+                if (trip.getStartTime() != null && trip.getStartTime().length() > 5) {
+                    trip.setStartTime(trip.getStartTime().substring(0, 5));
+                }
+                if (trip.getEndTime() != null && trip.getEndTime().length() > 5) {
+                    trip.setEndTime(trip.getEndTime().substring(0, 5));
+                }
+            }
+            
+            request.setAttribute("tour", tour);
+            request.setAttribute("departureCity", departureCity);
+            request.setAttribute("destinationCity", destinationCity);
+            request.setAttribute("trips", trips);
+            request.setAttribute("totalTrips", totalTrips);
+            request.setAttribute("currentPage", page);
+            request.setAttribute("itemsPerPage", itemsPerPage);
+            
+            request.getRequestDispatcher("/admin/tour-trips.jsp").forward(request, response);
+        } catch (NumberFormatException e) {
+            request.setAttribute("errorMessage", "Invalid tour ID");
+            request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+        } catch (Exception e) {
+            request.setAttribute("errorMessage", "Error fetching tour trips: " + e.getMessage());
+            request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+        }
+    }
+    
