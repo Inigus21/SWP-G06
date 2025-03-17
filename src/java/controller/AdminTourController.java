@@ -106,3 +106,52 @@ public class AdminTourController extends HttpServlet {
                 listTours(request, response);
         }
     }
+ private void listTours(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            int page = 1;
+            int itemsPerPage = 10;
+            
+            // Get page and itemsPerPage parameters
+            String pageParam = request.getParameter("page");
+            String itemsPerPageParam = request.getParameter("itemsPerPage");
+            
+            if (pageParam != null && !pageParam.isEmpty()) {
+                try {
+                    page = Integer.parseInt(pageParam);
+                    if (page < 1) page = 1;
+                } catch (NumberFormatException e) {
+                    // If page is not a valid number, default to 1
+                }
+            }
+            
+            if (itemsPerPageParam != null && !itemsPerPageParam.isEmpty()) {
+                try {
+                    itemsPerPage = Integer.parseInt(itemsPerPageParam);
+                    // Limit items per page to prevent excessive loads
+                    if (itemsPerPage < 5) itemsPerPage = 5;
+                    if (itemsPerPage > 100) itemsPerPage = 100;
+                } catch (NumberFormatException e) {
+                    // If itemsPerPage is not a valid number, default to 10
+                }
+            }
+            
+            TourDAO tourDAO = new TourDAO();
+            
+            // Get total count of tours for pagination
+            int totalTours = tourDAO.getTotalTours();
+            
+            // Get paginated list of tours
+            List<Tour> tours = tourDAO.getToursByPage(page, itemsPerPage);
+            
+            request.setAttribute("tours", tours);
+            request.setAttribute("totalTours", totalTours);
+            request.setAttribute("currentPage", page);
+            request.setAttribute("itemsPerPage", itemsPerPage);
+            
+            request.getRequestDispatcher("/admin/tours.jsp").forward(request, response);
+        } catch (SQLException | ClassNotFoundException e) {
+            request.setAttribute("errorMessage", "Error fetching tours: " + e.getMessage());
+            request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+        }
+    }
