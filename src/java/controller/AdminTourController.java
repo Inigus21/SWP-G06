@@ -154,4 +154,77 @@ public class AdminTourController extends HttpServlet {
             request.setAttribute("errorMessage", "Error fetching tours: " + e.getMessage());
             request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
         }
+    } private void viewTour(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            int tourId = Integer.parseInt(request.getParameter("id"));
+            TourDAO tourDAO = new TourDAO();
+            TourImageDAO tourImageDAO = new TourImageDAO();
+            TripDAO tripDAO = new TripDAO();
+            
+            Tour tour = tourDAO.getTourById(tourId);
+            List<TourImage> images = tourImageDAO.getTourImagesById(tourId);
+            List<model.TourSchedule> schedules = tourDAO.getTourSchedule(tourId);
+            
+            // Get upcoming trips
+            List<Trip> upcomingTrips = tripDAO.getTripsByTourId(tourId);
+            
+            request.setAttribute("tour", tour);
+            request.setAttribute("tourImages", images);
+            request.setAttribute("tourSchedules", schedules);
+            request.setAttribute("upcomingTrips", upcomingTrips);
+            
+            request.getRequestDispatcher("/admin/tour-detail.jsp").forward(request, response);
+        } catch (NumberFormatException e) {
+            request.setAttribute("errorMessage", "Invalid tour ID");
+            request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+        } catch (Exception e) {
+            request.setAttribute("errorMessage", "Error fetching tour details: " + e.getMessage());
+            request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+        }
+    }private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            CategoryDAO categoryDAO = new CategoryDAO();
+            CityDAO cityDAO = new CityDAO();
+            
+            List<Category> categories = categoryDAO.getAllCategories();
+                List<City> cities = cityDAO.getAllCities();
+            
+            request.setAttribute("categories", categories);
+            request.setAttribute("cities", cities);
+            
+            request.getRequestDispatcher("/admin/tour-form.jsp").forward(request, response);
+        } catch (Exception e) {
+            request.setAttribute("errorMessage", "Error preparing tour form: " + e.getMessage());
+            request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+        }
+    }
+    
+    private void showEditForm(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            int tourId = Integer.parseInt(request.getParameter("id"));
+            TourDAO tourDAO = new TourDAO();
+            Tour tour = tourDAO.getTourById(tourId);
+            
+            // Load categories and cities for dropdowns
+            CategoryDAO categoryDAO = new CategoryDAO();
+            CityDAO cityDAO = new CityDAO();
+            
+            List<Category> categories = categoryDAO.getAllCategories();
+            List<City> cities = cityDAO.getAllCities();
+            
+            request.setAttribute("tour", tour);
+            request.setAttribute("categories", categories);
+            request.setAttribute("cities", cities);
+            
+            request.getRequestDispatcher("/admin/edit-tour.jsp").forward(request, response);
+        } catch (NumberFormatException e) {
+            request.setAttribute("errorMessage", "Invalid tour ID");
+            request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+        } catch (Exception e) {
+            request.setAttribute("errorMessage", "Error preparing tour form: " + e.getMessage());
+            request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+        }
     }
