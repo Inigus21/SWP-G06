@@ -212,4 +212,84 @@ public void addTrip(Trip trip) throws SQLException, ClassNotFoundException {
         }
     }
 
+    public Trip getAvailableTripForTour(int tourId, int requiredSlots) throws SQLException, ClassNotFoundException {
+        // First, let's print all trips for this tour to diagnose what's happening
+        String debugSql = "SELECT id, tour_id, departure_date, available_slot, is_delete FROM trip WHERE tour_id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement debugStmt = conn.prepareStatement(debugSql)) {
+            
+            debugStmt.setInt(1, tourId);
+            
+            System.out.println("DEBUG - All trips for tour " + tourId + ":");
+            try (ResultSet rs = debugStmt.executeQuery()) {
+                while (rs.next()) {
+                    System.out.println("Trip ID: " + rs.getInt("id") + 
+                                      ", Departure: " + rs.getTimestamp("departure_date") + 
+                                      ", Available Slots: " + rs.getInt("available_slot") + 
+                                      ", Is Deleted: " + rs.getBoolean("is_delete"));
+                }
+            }
+        }
+        
+        // Get the database server's current date
+        String currentDateSql = "SELECT GETDATE() AS db_current_date";
+        java.sql.Timestamp dbCurrentDate = null;
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(currentDateSql);
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                dbCurrentDate = rs.getTimestamp("db_current_date");
+                System.out.println("DEBUG - Database current date: " + dbCurrentDate);
+            }
+        }
+        
+        // Try a simpler query that only compares dates, not datetimes
+        String simpleDateSql = 
+            "SELECT * FROM trip " +
+            "WHERE tour_id = ? " +
+            "AND CONVERT(date, departure_date) >= CONVERT(date, GETDATE()) " +
+            "AND available_slot >= ? " +
+            "AND is_delete = 0 " +
+            "ORDER BY departure_date ASC";
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement simpleStmt = conn.prepareStatement(simpleDateSql)) {
+            
+            simpleStmt.setInt(1, tourId);
+            simpleStmt.setInt(2, requiredSlots);
+            
+            System.out.println("Executing simple date query for tourId=" + tourId + ", requiredSlots=" + requiredSlots);
+            
+            try (ResultSet rs = simpleStmt.executeQuery()) {
+                if (rs.next()) {
+                    Trip trip = mapTrip(rs);
+                    System.out.println("Found available trip: ID=" + trip.getId() + 
+                                      ", Departure=" + trip.getDepartureDate() + 
+                                      ", Available Slots=" + trip.getAvailableSlot());
+                    return trip;
+                } else {
+                    System.out.println("No available trips found for tour " + tourId + " requiring " + requiredSlots + " slots");
+                }
+            }
+        }
+        
+        return null;
+    }
+    
+    private Trip mapTrip(ResultSet rs) throws SQLException {
+        Trip trip = new Trip();
+        trip.setId(rs.getInt("id"));
+        trip.setDepartureCityId(rs.getInt("departure_city_id"));
+        trip.setDestinationCityId(rs.getInt("destination_city_id"));
+        trip.setTourId(rs.getInt("tour_id"));
+        trip.setDepartureDate(rs.getTimestamp("departure_date"));
+        trip.setReturnDate(rs.getTimestamp("return_date"));
+        trip.setStartTime(rs.getString("start_time"));
+        trip.setEndTime(rs.getString("end_time"));
+        trip.setAvailableSlot(rs.getInt("available_slot"));
+        trip.setCreatedDate(rs.getTimestamp("created_date"));
+        trip.setDeletedDate(rs.getTimestamp("deleted_date"));
+        trip.setIsDelete(rs.getBoolean("is_delete"));
+        return trip;
+    }
 }
