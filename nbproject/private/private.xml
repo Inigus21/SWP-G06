@@ -3,10 +3,11 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/SWP_PROJECT/on-class-branch/swp391-group6-explore-vietnam-tours/src/java/dao/TourDAO.java</file>
-            <file>file:/D:/SWP_PROJECT/on-class-branch/swp391-group6-explore-vietnam-tours/src/java/controller/AdminCategoryController.java</file>
-            <file>file:/D:/SWP_PROJECT/on-class-branch/swp391-group6-explore-vietnam-tours/web/home.jsp</file>
-            <file>file:/D:/SWP_PROJECT/on-class-branch/swp391-group6-explore-vietnam-tours/src/java/dao/ReviewDAO.java</file>
+            <file>file:/D:/TourProject/TourProject/swp391-group6-explore-vietnam-tours/src/java/controller/GetTripDetailsServlet.java</file>
+            <file>file:/D:/TourProject/TourProject/swp391-group6-explore-vietnam-tours/src/java/model/Review.java</file>
+            <file>file:/D:/TourProject/TourProject/swp391-group6-explore-vietnam-tours/src/java/model/Transaction.java</file>
+            <file>file:/D:/TourProject/TourProject/swp391-group6-explore-vietnam-tours/src/java/controller/AdminTourController.java</file>
+            <file>file:/D:/TourProject/TourProject/swp391-group6-explore-vietnam-tours/src/java/model/Booking.java</file>
         </group>
     </open-files>
 </project-private>
