@@ -493,3 +493,100 @@ public class AdminTourController extends HttpServlet {
         }
     }
     
+    private void viewTourSchedules(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            int tourId = Integer.parseInt(request.getParameter("id"));
+            TourDAO tourDAO = new TourDAO();
+            
+            Tour tour = tourDAO.getTourById(tourId);
+            List<TourSchedule> schedules = tourDAO.getTourSchedule(tourId);
+            
+            request.setAttribute("tour", tour);
+            request.setAttribute("tourSchedules", schedules);
+            
+            request.getRequestDispatcher("/admin/tour-schedules.jsp").forward(request, response);
+        } catch (NumberFormatException e) {
+            request.setAttribute("errorMessage", "Invalid tour ID");
+            request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+        } catch (Exception e) {
+            request.setAttribute("errorMessage", "Error fetching tour schedules: " + e.getMessage());
+            request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+        }
+    }
+    
+    private void createSchedule(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            int tourId = Integer.parseInt(request.getParameter("tourId"));
+            int dayNumber = Integer.parseInt(request.getParameter("dayNumber"));
+            String itinerary = request.getParameter("itinerary");
+            String description = request.getParameter("description");
+            
+            TourSchedule schedule = new TourSchedule();
+            schedule.setTourId(tourId);
+            schedule.setDayNumber(dayNumber);
+            schedule.setItinerary(itinerary);
+            schedule.setDescription(description);
+            
+            TourDAO tourDAO = new TourDAO();
+            tourDAO.addTourSchedule(schedule);
+            
+            response.sendRedirect(request.getContextPath() + "/admin/tours/schedules?id=" + tourId);
+        } catch (NumberFormatException e) {
+            request.setAttribute("errorMessage", "Invalid input data");
+            request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+        } catch (Exception e) {
+            request.setAttribute("errorMessage", "Error creating tour schedule: " + e.getMessage());
+            request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+        }
+    }
+    
+    private void updateSchedule(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            int scheduleId = Integer.parseInt(request.getParameter("scheduleId"));
+            int tourId = Integer.parseInt(request.getParameter("tourId"));
+            int dayNumber = Integer.parseInt(request.getParameter("dayNumber"));
+            String itinerary = request.getParameter("itinerary");
+            String description = request.getParameter("description");
+            
+            TourSchedule schedule = new TourSchedule();
+            schedule.setId(scheduleId);
+            schedule.setTourId(tourId);
+            schedule.setDayNumber(dayNumber);
+            schedule.setItinerary(itinerary);
+            schedule.setDescription(description);
+            
+            TourDAO tourDAO = new TourDAO();
+            tourDAO.updateTourSchedule(schedule);
+            
+            response.sendRedirect(request.getContextPath() + "/admin/tours/schedules?id=" + tourId);
+        } catch (NumberFormatException e) {
+            request.setAttribute("errorMessage", "Invalid input data");
+            request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+        } catch (Exception e) {
+            request.setAttribute("errorMessage", "Error updating tour schedule: " + e.getMessage());
+            request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+        }
+    }
+    
+    private void deleteSchedule(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            int scheduleId = Integer.parseInt(request.getParameter("scheduleId"));
+            int tourId = Integer.parseInt(request.getParameter("tourId"));
+            
+            TourDAO tourDAO = new TourDAO();
+            tourDAO.deleteTourSchedule(scheduleId);
+            
+            response.sendRedirect(request.getContextPath() + "/admin/tours/schedules?id=" + tourId);
+        } catch (NumberFormatException e) {
+            request.setAttribute("errorMessage", "Invalid schedule ID");
+            request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+        } catch (Exception e) {
+            request.setAttribute("errorMessage", "Error deleting tour schedule: " + e.getMessage());
+            request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+        }
+    }
+}
