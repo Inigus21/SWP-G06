@@ -71,5 +71,38 @@ public class AdminTourController extends HttpServlet {
                 break;
             default:
                 listTours(request, response);
+        }}
+     @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String action = request.getParameter("action");
+        
+        switch (action) {
+            case "create":
+                createTour(request, response);
+                break;
+            case "update":
+                updateTour(request, response);
+                break;
+            case "create-trip":
+                createTrip(request, response);
+                break;
+            case "update-trip":
+                updateTrip(request, response);
+                break;
+            case "delete-trip":
+                deleteTrip(request, response);
+                break;
+            case "create-schedule":
+                createSchedule(request, response);
+                break;
+            case "update-schedule":
+                updateSchedule(request, response);
+                break;
+            case "delete-schedule":
+                deleteSchedule(request, response);
+                break;
+            default:
+                listTours(request, response);
         }
     }
