@@ -79,7 +79,6 @@ public class AdminCategoryController extends HttpServlet {
             int pageSize = 10;
             String search = null;
             String sort = null;
-            
             String pageParam = request.getParameter("page");
             if (pageParam != null && !pageParam.isEmpty()) {
                 try {
@@ -144,7 +143,6 @@ public class AdminCategoryController extends HttpServlet {
                     categories.sort((a, b) -> b.getName().compareToIgnoreCase(a.getName()));
                 }
             }
-            
             int totalPages = (int) Math.ceil((double) totalCategories / pageSize);
             
             // Ensure page is within bounds
@@ -167,7 +165,6 @@ public class AdminCategoryController extends HttpServlet {
                     }
                 }
             }
-            
             // Get tour count for each category
             for (Category category : categories) {
                 int tourCount = categoryDAO.getTourCountByCategory(category.getId());
@@ -219,6 +216,7 @@ public class AdminCategoryController extends HttpServlet {
             
             // Redirect to the categories list page
             response.sendRedirect(request.getContextPath() + "/admin/category");
+
         } catch (Exception e) {
             request.setAttribute("errorMessage", "Error adding category: " + e.getMessage());
             request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
@@ -246,6 +244,7 @@ public class AdminCategoryController extends HttpServlet {
             
             // Redirect to the categories list page
             response.sendRedirect(request.getContextPath() + "/admin/category");
+
         } catch (NumberFormatException e) {
             request.setAttribute("errorMessage", "Invalid category ID");
             request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
@@ -268,6 +267,7 @@ public class AdminCategoryController extends HttpServlet {
                 HttpSession session = request.getSession();
                 session.setAttribute("errorMessage", "Cannot delete category because it is used by " + tourCount + " tours");
                 response.sendRedirect(request.getContextPath() + "/admin/category");
+
                 return;
             }
             
@@ -278,7 +278,7 @@ public class AdminCategoryController extends HttpServlet {
             session.setAttribute("successMessage", "Category deleted successfully!");
             
             // Redirect to the categories list page
-            response.sendRedirect(request.getContextPath() + "/admin/category");
+            response.sendRedirect(request.getContextPath() + "/admin/category")
         } catch (NumberFormatException e) {
             request.setAttribute("errorMessage", "Invalid category ID");
             request.getRequestDispatcher("/admin/error.jsp").forward(request, response);

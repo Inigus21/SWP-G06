@@ -155,6 +155,7 @@ public class TourDAO {
         List<Tour> tours = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
                 "WITH FilteredTours AS ("
+
                 + "SELECT t.*, c.name as departure_city, "
                 // Add calculation for discounted price and percentage for sorting
                 + "(SELECT TOP 1 p.discount_percentage "
@@ -269,6 +270,7 @@ public class TourDAO {
         if (sortBy != null) {
             switch (sortBy) {
                 case "price_asc":
+
                     sql.append("discounted_price ASC");
                     break;
                 case "price_desc":
@@ -277,6 +279,7 @@ public class TourDAO {
                 case "duration":
                     sql.append("duration");
                     break;
+
                 case "discount_price_asc":
                     // Sort by discounted price (price after applying promotion)
                     sql.append("discounted_price ASC");
@@ -464,6 +467,7 @@ public class TourDAO {
                 tour.setDestinationCity(rs.getString("destination_city"));
                 tour.setDiscountPercentage(rs.getDouble("discount_percentage"));
                 tours.add(tour);
+
             }
         }
         return tours;
@@ -512,7 +516,7 @@ public class TourDAO {
             
             System.out.println("Total tours retrieved: " + tours.size());
         }
-        
+
         return tours;
     }
 
@@ -1207,6 +1211,7 @@ public class TourDAO {
                     "AND p.start_date <= GETDATE() " +
                     "AND p.end_date >= GETDATE() " +
                     "ORDER BY p.discount_percentage DESC " +
+
                     "OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
 
         try (Connection conn = DBContext.getConnection(); 
@@ -1224,6 +1229,7 @@ public class TourDAO {
                 tour.setDestinationCity(rs.getString("destination_city"));
                 tour.setAvailableSlot(rs.getInt("available_slot"));
                 tour.setDiscountPercentage(rs.getDouble("discount_percentage"));
+
                 tours.add(tour);
             }
         }
