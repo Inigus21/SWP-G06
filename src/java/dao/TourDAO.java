@@ -4,7 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import model.Category;
 import model.City;
@@ -12,6 +15,7 @@ import model.Promotion;
 import model.Tour;
 import model.Trip;
 import utils.DBContext;
+import dao.BookingDAO;
 
 public class TourDAO {
 
@@ -76,7 +80,7 @@ public class TourDAO {
     public List<String> getDepartureDates(int tourId) throws SQLException, ClassNotFoundException {
         List<String> dates = new ArrayList<>();
         String sql = "SELECT CONVERT(varchar, departure_date, 103) as formatted_date "
-                + "FROM trip WHERE tour_id = ? AND departure_date >= GETDATE() AND is_delete = 0"
+                + "FROM trip WHERE tour_id = ? AND departure_date >= GETDATE() AND is_delete = 0 "
                 + "ORDER BY departure_date";
 
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -151,7 +155,25 @@ public class TourDAO {
         List<Tour> tours = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
                 "WITH FilteredTours AS ("
-                + "SELECT t.*, c.name as departure_city "
+                + "SELECT t.*, c.name as departure_city, "
+                // Add calculation for discounted price and percentage for sorting
+                + "(SELECT TOP 1 p.discount_percentage "
+                + "FROM tour_promotion tp "
+                + "JOIN promotion p ON tp.promotion_id = p.id "
+                + "WHERE tp.tour_id = t.id "
+                + "AND p.start_date <= GETDATE() AND p.end_date >= GETDATE() AND p.is_delete = 0 "
+                + "ORDER BY p.discount_percentage DESC) as discount_percentage, "
+                + "CASE WHEN EXISTS (SELECT 1 FROM tour_promotion tp "
+                + "JOIN promotion p ON tp.promotion_id = p.id "
+                + "WHERE tp.tour_id = t.id "
+                + "AND p.start_date <= GETDATE() AND p.end_date >= GETDATE() AND p.is_delete = 0) "
+                + "THEN t.price_adult * (1 - (SELECT TOP 1 p.discount_percentage / 100.0 "
+                + "FROM tour_promotion tp "
+                + "JOIN promotion p ON tp.promotion_id = p.id "
+                + "WHERE tp.tour_id = t.id "
+                + "AND p.start_date <= GETDATE() AND p.end_date >= GETDATE() AND p.is_delete = 0 "
+                + "ORDER BY p.discount_percentage DESC)) "
+                + "ELSE t.price_adult END as discounted_price "
                 + "FROM tours t "
                 + "JOIN city c ON t.departure_location_id = c.id "
                 + "WHERE EXISTS ("
@@ -187,15 +209,27 @@ public class TourDAO {
                 if (i > 0) {
                     sql.append(" OR ");
                 }
-                double priceRange = priceRanges[i];
-                if (priceRange == 0) {
+                double minPrice = priceRanges[i];
+                
+                System.out.println("Applying price filter for minPrice: " + minPrice);
+                
+                // Handle specific price ranges based on the minimum price value
+                if (minPrice < 1) { // Handle 0-5000000 range
                     sql.append("t.price_adult < 5000000");
-                } else if (priceRange == 5) {
+                    System.out.println("SQL condition: t.price_adult < 5000000");
+                } else if (minPrice >= 5000000 && minPrice < 5000001) { // Handle 5000000-10000000 range
                     sql.append("(t.price_adult >= 5000000 AND t.price_adult < 10000000)");
-                } else if (priceRange == 10) {
+                    System.out.println("SQL condition: (t.price_adult >= 5000000 AND t.price_adult < 10000000)");
+                } else if (minPrice >= 10000000 && minPrice < 10000001) { // Handle 10000000-20000000 range
                     sql.append("(t.price_adult >= 10000000 AND t.price_adult < 20000000)");
-                } else if (priceRange == 20) {
+                    System.out.println("SQL condition: (t.price_adult >= 10000000 AND t.price_adult < 20000000)");
+                } else if (minPrice >= 20000000) { // Handle 20000000+ range
                     sql.append("t.price_adult >= 20000000");
+                    System.out.println("SQL condition: t.price_adult >= 20000000");
+                } else {
+                    // Fallback for unexpected values - consider all prices
+                    sql.append("1=1");
+                    System.out.println("SQL condition: 1=1 (fallback)");
                 }
             }
             sql.append(")");
@@ -235,13 +269,25 @@ public class TourDAO {
         if (sortBy != null) {
             switch (sortBy) {
                 case "price_asc":
-                    sql.append("price_adult ASC");
+                    sql.append("discounted_price ASC");
                     break;
                 case "price_desc":
-                    sql.append("price_adult DESC");
+                    sql.append("discounted_price DESC");
                     break;
                 case "duration":
                     sql.append("duration");
+                    break;
+                case "discount_price_asc":
+                    // Sort by discounted price (price after applying promotion)
+                    sql.append("discounted_price ASC");
+                    break;
+                case "discount_price_desc":
+                    // Sort by discounted price (price after applying promotion) - descending
+                    sql.append("discounted_price DESC");
+                    break;
+                case "discount_percent_desc":
+                    // Sort by discount percentage - highest discount first
+                    sql.append("discount_percentage DESC");
                     break;
                 default:
                     sql.append("id");
@@ -319,15 +365,27 @@ public class TourDAO {
                 if (i > 0) {
                     sql.append(" OR ");
                 }
-                double priceRange = priceRanges[i];
-                if (priceRange == 0) {
+                double minPrice = priceRanges[i];
+                
+                System.out.println("Applying price filter for minPrice: " + minPrice);
+                
+                // Handle specific price ranges based on the minimum price value
+                if (minPrice < 1) { // Handle 0-5000000 range
                     sql.append("t.price_adult < 5000000");
-                } else if (priceRange == 5) {
+                    System.out.println("SQL condition: t.price_adult < 5000000");
+                } else if (minPrice >= 5000000 && minPrice < 5000001) { // Handle 5000000-10000000 range
                     sql.append("(t.price_adult >= 5000000 AND t.price_adult < 10000000)");
-                } else if (priceRange == 10) {
+                    System.out.println("SQL condition: (t.price_adult >= 5000000 AND t.price_adult < 10000000)");
+                } else if (minPrice >= 10000000 && minPrice < 10000001) { // Handle 10000000-20000000 range
                     sql.append("(t.price_adult >= 10000000 AND t.price_adult < 20000000)");
-                } else if (priceRange == 20) {
+                    System.out.println("SQL condition: (t.price_adult >= 10000000 AND t.price_adult < 20000000)");
+                } else if (minPrice >= 20000000) { // Handle 20000000+ range
                     sql.append("t.price_adult >= 20000000");
+                    System.out.println("SQL condition: t.price_adult >= 20000000");
+                } else {
+                    // Fallback for unexpected values - consider all prices
+                    sql.append("1=1");
+                    System.out.println("SQL condition: 1=1 (fallback)");
                 }
             }
             sql.append(")");
@@ -371,7 +429,7 @@ public class TourDAO {
         }
         return 0;
     }
-    
+
     /**
      * Get top 4 destination cities with highest discount
      * @return List of tours with the highest discount percentages
@@ -411,8 +469,54 @@ public class TourDAO {
         return tours;
     }
 
+    /**
+     * Get top 3 popular tours directly from the database
+     * @param limit Number of tours to return
+     * @return List of tours 
+     * @throws SQLException If database access error occurs
+     * @throws ClassNotFoundException If the database driver class is not found
+     */
+    public List<Tour> getPopularTours(int limit) throws SQLException, ClassNotFoundException {
+        List<Tour> tours = new ArrayList<>();
+        
+        // SQL Server doesn't support parameterized TOP, so we need to use a different approach
+        String sql = "SELECT t.id, t.name, t.img, t.duration, t.price_adult, t.price_children, " +
+                    "c.name AS departure_city " +
+                    "FROM tours t " +
+                    "JOIN city c ON t.departure_location_id = c.id " +
+                    "ORDER BY t.id " +
+                    "OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
+
+        try (Connection conn = DBContext.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            
+            System.out.println("Executing SQL: " + sql);
+            
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Tour tour = new Tour();
+                tour.setId(rs.getInt("id"));
+                tour.setName(rs.getString("name"));
+                tour.setImg(rs.getString("img"));
+                tour.setDuration(rs.getString("duration"));
+                tour.setPriceAdult(rs.getDouble("price_adult"));
+                tour.setPriceChildren(rs.getDouble("price_children"));
+                tour.setDepartureCity(rs.getString("departure_city"));
+                tour.setAvailableSlot(20); // Default available slots if not in query
+                
+                System.out.println("Retrieved tour: " + tour.getId() + " - " + tour.getName());
+                
+                tours.add(tour);
+            }
+            
+            System.out.println("Total tours retrieved: " + tours.size());
+        }
+        return tours;
+    }
+
     public Trip getNearestFutureTrip(int tourId) {
-        String sql = "SELECT TOP 1 * FROM trip WHERE tour_id = ? AND departure_date > CURRENT_TIMESTAMP ORDER BY departure_date ASC";
+        String sql = "SELECT TOP 1 * FROM trip WHERE tour_id = ? AND departure_date > GETDATE() AND is_delete = 0 ORDER BY departure_date ASC";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement st = conn.prepareStatement(sql)) {
             st.setInt(1, tourId);
@@ -601,14 +705,20 @@ public class TourDAO {
      */
     public List<Tour> getRelatedToursByCity(int cityId, int currentTourId, int limit) {
         List<Tour> relatedTours = new ArrayList<>();
-        String sql = "SELECT DISTINCT t.*, c.name as city_name FROM tours t " +
-                     "JOIN trip tr ON t.id = tr.tour_id " +
-                     "JOIN city c ON tr.destination_city_id = c.id " +
-                     "WHERE tr.destination_city_id = ? " +
-                     "AND t.id != ? " +
-                     "AND tr.departure_date > GETDATE() " +
-                     "AND tr.is_delete = 0 " +
-                     "ORDER BY NEWID() " +  // Random selection for variety
+        String sql = "WITH CityTours AS (" +
+                     "  SELECT DISTINCT t.id, t.name, t.img, t.price_adult, t.price_children, " +
+                     "  t.duration, t.departure_location_id, t.suitable_for, t.best_time, " +
+                     "  c.name as city_name " +
+                     "  FROM tours t " +
+                     "  JOIN trip tr ON t.id = tr.tour_id " +
+                     "  JOIN city c ON tr.destination_city_id = c.id " +
+                     "  WHERE tr.destination_city_id = ? " +
+                     "  AND t.id != ? " +
+                     "  AND tr.departure_date > GETDATE() " +
+                     "  AND tr.is_delete = 0 " +
+                     ") " +
+                     "SELECT *, NEWID() as random_order FROM CityTours " +
+                     "ORDER BY random_order " +
                      "OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
         
         try (Connection conn = DBContext.getConnection();
@@ -635,46 +745,6 @@ public class TourDAO {
             System.out.println(e);
         }
         return relatedTours;
-    }
-    
-    /**
-     * Get popular tours based on booking frequency or featured status
-     * @param limit maximum number of tours to return
-     * @return List of popular tours
-     */
-    public List<Tour> getPopularTours(int limit) {
-        List<Tour> popularTours = new ArrayList<>();
-        // For simplicity, we'll just get random tours with upcoming trips
-        String sql = "SELECT DISTINCT t.*, c.name as city_name FROM tours t " +
-                     "JOIN trip tr ON t.id = tr.tour_id " +
-                     "JOIN city c ON tr.destination_city_id = c.id " +
-                     "WHERE tr.departure_date > GETDATE() " +
-                     "AND tr.is_delete = 0 " +
-                     "ORDER BY NEWID() " +  // Random selection for now, could be replaced with actual popularity metrics
-                     "OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
-        
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement st = conn.prepareStatement(sql)) {
-            st.setInt(1, limit);
-            ResultSet rs = st.executeQuery();
-            while (rs.next()) {
-                Tour tour = new Tour();
-                tour.setId(rs.getInt("id"));
-                tour.setName(rs.getString("name"));
-                tour.setImg(rs.getString("img"));
-                tour.setPriceAdult(rs.getDouble("price_adult"));
-                tour.setPriceChildren(rs.getDouble("price_children"));
-                tour.setDuration(rs.getString("duration"));
-                tour.setDepartureLocationId(rs.getInt("departure_location_id"));
-                tour.setDestinationCity(rs.getString("city_name"));
-                tour.setSuitableFor(rs.getString("suitable_for"));
-                tour.setBestTime(rs.getString("best_time"));
-                popularTours.add(tour);
-            }
-        } catch (SQLException | ClassNotFoundException e) {
-            System.out.println(e);
-        }
-        return popularTours;
     }
     
     /**
@@ -717,19 +787,25 @@ public class TourDAO {
      * @param limit maximum number of tours to return
      * @return List of related tours
      */
-    public List<Tour> getRelatedToursByRegion(String region, int currentTourId, int limit) {
+    public List<Tour> getRelatedToursByRegion(String region, int currentTourId, int limit) throws SQLException, ClassNotFoundException {
         List<Tour> relatedTours = new ArrayList<>();
         
         if (region == null || region.isEmpty()) {
             return getPopularTours(limit);
         }
         
-        String sql = "SELECT DISTINCT t.*, c.name as departure_city_name FROM tours t " +
-                     "JOIN city c ON t.departure_location_id = c.id " +
-                     "WHERE t.region LIKE ? " +
-                     "AND t.id != ? " +
-                     "AND EXISTS (SELECT 1 FROM trip tr WHERE tr.tour_id = t.id AND tr.departure_date > GETDATE() AND tr.is_delete = 0) " +
-                     "ORDER BY NEWID() " +  // Random selection for variety
+        String sql = "WITH RelatedTours AS (" +
+                     "  SELECT DISTINCT t.id, t.name, t.img, t.price_adult, t.price_children, " +
+                     "  t.duration, t.departure_location_id, t.suitable_for, t.best_time, t.region, " +
+                     "  c.name as departure_city_name " +
+                     "  FROM tours t " +
+                     "  JOIN city c ON t.departure_location_id = c.id " +
+                     "  WHERE t.region LIKE ? " +
+                     "  AND t.id != ? " +
+                     "  AND EXISTS (SELECT 1 FROM trip tr WHERE tr.tour_id = t.id AND tr.departure_date > GETDATE() AND tr.is_delete = 0) " +
+                     ") " +
+                     "SELECT *, NEWID() as random_order FROM RelatedTours " +
+                     "ORDER BY random_order " +
                      "OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
         
         try (Connection conn = DBContext.getConnection();
@@ -766,6 +842,32 @@ public class TourDAO {
     }
 
     public void updateTour(Tour tour) throws SQLException, ClassNotFoundException {
+        // First check if any trips for this tour have bookings
+        BookingDAO bookingDAO = new BookingDAO();
+        if (bookingDAO.tourHasBookings(tour.getId())) {
+            System.out.println("Warning: Tour #" + tour.getId() + " has associated bookings. Only updating non-critical fields.");
+            
+            // Update only non-critical fields that won't affect bookings
+            String safeSql = "UPDATE tours SET name = ?, img = ?, cuisine = ?, region = ?, "
+                    + "category_id = ?, sightseeing = ? "
+                    + "WHERE id = ?";
+                    
+            try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(safeSql)) {
+                ps.setString(1, tour.getName());
+                ps.setString(2, tour.getImg());
+                ps.setString(3, tour.getCuisine());
+                ps.setString(4, tour.getRegion());
+                ps.setInt(5, tour.getCategoryId());
+                ps.setString(6, tour.getSightseeing());
+                ps.setInt(7, tour.getId());
+                
+                System.out.println("Performing safe update of tour with ID: " + tour.getId());
+                ps.executeUpdate();
+            }
+            return;
+        }
+        
+        // If no bookings, proceed with full update
         String sql = "UPDATE tours SET name = ?, img = ?, price_adult = ?, price_children = ?, "
                 + "duration = ?, suitable_for = ?, best_time = ?, cuisine = ?, region = ?, "
                 + "max_capacity = ?, departure_location_id = ?, category_id = ?, sightseeing = ? "
@@ -786,14 +888,108 @@ public class TourDAO {
             ps.setInt(12, tour.getCategoryId());
             ps.setString(13, tour.getSightseeing());
             ps.setInt(14, tour.getId());
+            if (hasBookings) {
+                System.out.println("Warning: Tour #" + tour.getId() + " has associated bookings. Only updating non-critical fields.");
+                
+                // Update only non-critical fields that won't affect bookings
+                String safeSql = "UPDATE tours SET name = ?, img = ?, cuisine = ?, region = ?, "
+                        + "category_id = ?, sightseeing = ?, best_time = ?, suitable_for = ? "
+                        + "WHERE id = ?";
+                        
+                Connection conn = null;
+                PreparedStatement ps = null;
+                try {
+                    conn = DBContext.getConnection();
+                    ps = conn.prepareStatement(safeSql);
+                    
+                    // Set parameters with validation
+                    ps.setString(1, tour.getName() != null ? tour.getName() : "");
+                    ps.setString(2, tour.getImg() != null ? tour.getImg() : "");
+                    ps.setString(3, tour.getCuisine() != null ? tour.getCuisine() : "");
+                    ps.setString(4, tour.getRegion() != null ? tour.getRegion() : "");
+                    ps.setInt(5, tour.getCategoryId() > 0 ? tour.getCategoryId() : 1);
+                    ps.setString(6, tour.getSightseeing() != null ? tour.getSightseeing() : "");
+                    ps.setString(7, tour.getBestTime() != null ? tour.getBestTime() : "");
+                    ps.setString(8, tour.getSuitableFor() != null ? tour.getSuitableFor() : "");
+                    ps.setInt(9, tour.getId());
+                    
+                    System.out.println("Executing safe SQL update for tour ID: " + tour.getId());
+                    int rowsAffected = ps.executeUpdate();
+                    System.out.println("Safe update complete. Rows affected: " + rowsAffected);
+                    
+                    if (rowsAffected == 0) {
+                        throw new SQLException("Update failed. No rows were affected. Tour ID: " + tour.getId());
+                    }
+                } finally {
+                    if (ps != null) try { ps.close(); } catch (SQLException e) { /* ignore */ }
+                    if (conn != null) try { conn.close(); } catch (SQLException e) { /* ignore */ }
+                }
+                return;
+            }
             
-            System.out.println("Updating tour with ID: " + tour.getId());
-            System.out.println("Region: " + tour.getRegion());
-            System.out.println("Max Capacity: " + tour.getMaxCapacity());
-            System.out.println("Departure Location ID: " + tour.getDepartureLocationId());
-            System.out.println("Category ID: " + tour.getCategoryId());
-            
-            ps.executeUpdate();
+            // If no bookings, proceed with full update
+            String sql = "UPDATE tours SET name = ?, img = ?, price_adult = ?, price_children = ?, "
+                    + "duration = ?, suitable_for = ?, best_time = ?, cuisine = ?, region = ?, "
+                    + "max_capacity = ?, departure_location_id = ?, category_id = ?, sightseeing = ? "
+                    + "WHERE id = ?";
+                    
+            Connection conn = null;
+            PreparedStatement ps = null;
+            try {
+                conn = DBContext.getConnection();
+                ps = conn.prepareStatement(sql);
+                
+                // Set parameters with validation
+                ps.setString(1, tour.getName() != null ? tour.getName() : "");
+                ps.setString(2, tour.getImg() != null ? tour.getImg() : "");
+                ps.setDouble(3, tour.getPriceAdult());
+                ps.setDouble(4, tour.getPriceChildren());
+                ps.setString(5, tour.getDuration() != null ? tour.getDuration() : "");
+                ps.setString(6, tour.getSuitableFor() != null ? tour.getSuitableFor() : "");
+                ps.setString(7, tour.getBestTime() != null ? tour.getBestTime() : "");
+                ps.setString(8, tour.getCuisine() != null ? tour.getCuisine() : "");
+                ps.setString(9, tour.getRegion() != null ? tour.getRegion() : "");
+                ps.setInt(10, tour.getMaxCapacity());
+                ps.setInt(11, tour.getDepartureLocationId() > 0 ? tour.getDepartureLocationId() : 1);
+                ps.setInt(12, tour.getCategoryId() > 0 ? tour.getCategoryId() : 1);
+                ps.setString(13, tour.getSightseeing() != null ? tour.getSightseeing() : "");
+                ps.setInt(14, tour.getId());
+                
+                System.out.println("Executing full SQL update for tour ID: " + tour.getId());
+                System.out.println("Parameters:");
+                System.out.println("1. Name: " + tour.getName());
+                System.out.println("2. Image: " + tour.getImg());
+                System.out.println("3. Price Adult: " + tour.getPriceAdult());
+                System.out.println("4. Price Children: " + tour.getPriceChildren());
+                System.out.println("5. Duration: " + tour.getDuration());
+                System.out.println("6. Suitable For: " + tour.getSuitableFor());
+                System.out.println("7. Best Time: " + tour.getBestTime());
+                System.out.println("8. Cuisine: " + tour.getCuisine());
+                System.out.println("9. Region: " + tour.getRegion());
+                System.out.println("10. Max Capacity: " + tour.getMaxCapacity());
+                System.out.println("11. Departure Location ID: " + tour.getDepartureLocationId());
+                System.out.println("12. Category ID: " + tour.getCategoryId());
+                System.out.println("13. Sightseeing: " + tour.getSightseeing());
+                System.out.println("14. ID: " + tour.getId());
+                
+                int rowsAffected = ps.executeUpdate();
+                System.out.println("Full update complete. Rows affected: " + rowsAffected);
+                
+                if (rowsAffected == 0) {
+                    throw new SQLException("Update failed. No rows were affected. Tour ID: " + tour.getId());
+                }
+            } finally {
+                if (ps != null) try { ps.close(); } catch (SQLException e) { /* ignore */ }
+                if (conn != null) try { conn.close(); } catch (SQLException e) { /* ignore */ }
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL Exception in updateTour: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        } catch (Exception e) {
+            System.err.println("Exception in updateTour: " + e.getMessage());
+            e.printStackTrace();
+            throw new SQLException("Error updating tour: " + e.getMessage(), e);
         }
     }
 
@@ -867,11 +1063,12 @@ public class TourDAO {
      * Get paginated list of tours with filters applied
      * @param searchQuery The search query string (can be null or empty)
      * @param region The region filter (can be null or empty)
+     * @param sort The sort option (can be null or empty)
      * @param page The page number (1-based)
      * @param itemsPerPage Number of items per page
      * @return List of tours matching the filters for the requested page
      */
-    public List<Tour> getFilteredToursByPage(String searchQuery, String region, int page, int itemsPerPage) 
+    public List<Tour> getFilteredToursByPage(String searchQuery, String region, String sort, int page, int itemsPerPage) 
             throws SQLException, ClassNotFoundException {
         List<Tour> tours = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
@@ -891,8 +1088,32 @@ public class TourDAO {
             params.add(region);
         }
         
-        // Removed DISTINCT and fixed ORDER BY to avoid SQL Server error
-        sql.append(" ORDER BY t.id OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        // Add sorting
+        sql.append(" ORDER BY ");
+        if (sort != null && !sort.trim().isEmpty()) {
+            switch (sort) {
+                case "name_asc":
+                    sql.append("t.name ASC");
+                    break;
+                case "name_desc":
+                    sql.append("t.name DESC");
+                    break;
+                case "price_asc":
+                    sql.append("t.price_adult ASC");
+                    break;
+                case "price_desc":
+                    sql.append("t.price_adult DESC");
+                    break;
+                default:
+                    sql.append("t.id"); // Default sorting
+                    break;
+            }
+        } else {
+            sql.append("t.id"); // Default sorting
+        }
+        
+        // Add pagination
+        sql.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
         params.add((page - 1) * itemsPerPage);
         params.add(itemsPerPage);
         
@@ -955,37 +1176,42 @@ public class TourDAO {
         }
         return -1;
     }
-    
-    public List<Tour> getToursWithActivePromotions(int limit) throws SQLException, ClassNotFoundException {
-        List<Tour> tours = new ArrayList<>();
-        String sql = "SELECT DISTINCT t.id, t.name, t.img, t.duration, t.price_adult, c.name as departure_city " +
-                    "FROM tours t " +
-                    "JOIN city c ON t.departure_location_id = c.id " +
-                    "JOIN tour_promotion tp ON t.id = tp.tour_id " +
-                    "JOIN promotion p ON tp.promotion_id = p.id " +
-                    "WHERE p.start_date <= GETDATE() " +
-                    "AND p.end_date >= GETDATE() " +
-                    "ORDER BY NEWID() " + // Random order to get variety
-                    "OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
 
-        try (Connection conn = DBContext.getConnection(); 
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, limit);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Tour tour = new Tour();
-                tour.setId(rs.getInt("id"));
-                tour.setName(rs.getString("name"));
-                tour.setImg(rs.getString("img"));
-                tour.setDuration(rs.getString("duration"));
-                tour.setPriceAdult(rs.getDouble("price_adult"));
-                tour.setDepartureCity(rs.getString("departure_city"));
-                tours.add(tour);
+    // Check if a tour has available trips (future departures)
+    public boolean hasTourAvailableTrips(int tourId) throws ClassNotFoundException {
+        String sql = "SELECT COUNT(*) FROM trip WHERE tour_id = ? AND departure_date > GETDATE() AND is_delete = 0";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, tourId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
             }
+        } catch (SQLException e) {
+            System.out.println("Error checking tour available trips: " + e.getMessage());
         }
-        return tours;
+        return false;
     }
     
+    // Check if a tour has available slots (not fully booked)
+    public boolean hasTourAvailableSlots(int tourId) throws ClassNotFoundException {
+        String sql = "SELECT t.available_slot " +
+                     "FROM trip t " +
+                     "WHERE t.tour_id = ? AND t.departure_date > GETDATE() AND t.is_delete = 0 " +
+                     "AND t.available_slot > 0";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, tourId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next(); // If there's at least one result, there's an available slot
+            }
+        } catch (SQLException e) {
+            System.out.println("Error checking tour available slots: " + e.getMessage());
+        }
+        return false;
+    }
+
     /**
      * Get tours with last-minute deals (special promotions with close departure dates)
      * @param limit Maximum number of deals to return
@@ -1030,5 +1256,89 @@ public class TourDAO {
             }
         }
         return tours;
+    }
+
+    /**
+     * Get tours with active promotions
+     * @param limit Maximum number of tours to return
+     * @return List of tours with active promotions
+     * @throws SQLException If a database access error occurs
+     * @throws ClassNotFoundException If the database driver class is not found
+     */
+    public List<Tour> getToursWithActivePromotions(int limit) throws SQLException, ClassNotFoundException {
+        List<Tour> tours = new ArrayList<>();
+        String sql = "SELECT DISTINCT t.id, t.name, t.img, t.duration, t.price_adult, c.name as departure_city " +
+                    "FROM tours t " +
+                    "JOIN city c ON t.departure_location_id = c.id " +
+                    "JOIN tour_promotion tp ON t.id = tp.tour_id " +
+                    "JOIN promotion p ON tp.promotion_id = p.id " +
+                    "WHERE p.start_date <= GETDATE() " +
+                    "AND p.end_date >= GETDATE() " +
+                    "ORDER BY NEWID() " + // Random order to get variety
+                    "OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
+
+        try (Connection conn = DBContext.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Tour tour = new Tour();
+                tour.setId(rs.getInt("id"));
+                tour.setName(rs.getString("name"));
+                tour.setImg(rs.getString("img"));
+                tour.setDuration(rs.getString("duration"));
+                tour.setPriceAdult(rs.getDouble("price_adult"));
+                tour.setDepartureCity(rs.getString("departure_city"));
+                tours.add(tour);
+            }
+        }
+        return tours;
+    }
+
+    /**
+     * Get all category IDs associated with a tour
+     * @param tourId ID of the tour
+     * @return List of category IDs
+     */
+    public List<Integer> getCategoryIdsForTour(int tourId) throws SQLException, ClassNotFoundException {
+        List<Integer> categoryIds = new ArrayList<>();
+        // In this simple implementation, we'll just return the categoryId as a single-item list
+        // In a real application with many-to-many relationships, you would query a join table
+        Tour tour = getTourById(tourId);
+        if (tour != null && tour.getCategoryId() > 0) {
+            categoryIds.add(tour.getCategoryId());
+        }
+        return categoryIds;
+    }
+
+    /**
+     * Soft delete a tour by setting is_delete to true
+     * @param tourId The ID of the tour to delete
+     * @return True if successful, false otherwise
+     */
+    public boolean softDeleteTour(int tourId) {
+        // First check if any trips for this tour have bookings
+        BookingDAO bookingDAO = new BookingDAO();
+        if (bookingDAO.tourHasBookings(tourId)) {
+            System.out.println("Cannot delete tour #" + tourId + " as it has associated bookings");
+            return false;
+        }
+        
+        String sql = "DELETE tours WHERE id = ?";
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement st = conn.prepareStatement(sql)) {
+            
+            st.setInt(1, tourId);
+            
+            int rowsAffected = st.executeUpdate();
+            System.out.println("Soft-deleted tour #" + tourId + ", rows affected: " + rowsAffected);
+            return rowsAffected > 0;
+        } catch (SQLException | ClassNotFoundException e) {
+            System.out.println("Error soft-deleting tour: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return false;
     }
 }
