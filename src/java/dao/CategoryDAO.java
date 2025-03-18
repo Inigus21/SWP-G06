@@ -38,7 +38,7 @@ public class CategoryDAO {
             String sql = "SELECT * FROM category ORDER BY id OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
             System.out.println("Executing SQL: " + sql);
             System.out.println("Parameters: page=" + page + ", pageSize=" + pageSize);
-            
+
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
                 statement.setInt(1, (page - 1) * pageSize);
                 statement.setInt(2, pageSize);
@@ -81,6 +81,7 @@ public class CategoryDAO {
             System.err.println("Error in getTotalCategories: " + e.getMessage());
             e.printStackTrace();
             throw e;
+
         }
         
         return total;

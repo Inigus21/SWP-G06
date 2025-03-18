@@ -253,8 +253,7 @@ public class TripDAO {
             System.out.println("Return Date: " + trip.getReturnDate());
             System.out.println("Start Time: " + trip.getStartTime());
             System.out.println("End Time: " + trip.getEndTime());
-            System.out.println("Available Slots: " + trip.getAvailableSlot());
-            
+            System.out.println("Available Slots: " + trip.getAvailableSlot()); 
             stmt.setInt(1, trip.getDepartureCityId());
             stmt.setInt(2, trip.getDestinationCityId());
             stmt.setInt(3, trip.getTourId());
@@ -304,7 +303,6 @@ public class TripDAO {
         
         try (Connection conn = DBContext.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
             // Debug output to verify values being updated
             System.out.println("Updating trip with the following values:");
             System.out.println("Trip ID: " + trip.getId());
@@ -384,7 +382,6 @@ public class TripDAO {
         }
         
         String sql = "UPDATE trip SET is_delete = 1, deleted_date = CURRENT_TIMESTAMP WHERE id = ?";
-        
         try (Connection conn = DBContext.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
