@@ -89,7 +89,7 @@
                     class="bg-sky-500 flex flex-col md:flex-row justify-between items-center py-2 px-4 text-white text-sm w-full">
                     <div class="flex items-center mb-2 md:mb-0">
                         <span class="material-symbols-outlined mr-1">call</span>
-                        <span>1900 1839 - Từ 8:00 - 23:00 hàng ngày</span>
+                        <span>1900 1839 - Từ 8:00 - 11:00 hàng ngày</span>
                     </div>
                     <div>
                         <% if (session.getAttribute("user") !=null) { model.User
@@ -155,14 +155,17 @@
                                  class="h-16 md:h-24 w-auto" />
                         </a>
                     </div>
-                    <p class="text-center mt-2">Hãy đến và trải nghiệm những dịch vụ tour du lịch của TourNest</p>
+                    <p class="text-center mt-2">Hãy đến và trải nghiệm những
+                        dịch vụ tour du lịch của Tour<span
+                            class="text-sky-500">Nest</span></p>
                 </nav>
 
                 <div class="flex flex-col lg:flex-row gap-6 p-4 lg:p-8">
                     <!-- Filter Sidebar -->
                     <div class="w-full lg:w-[250px]">
                         <div class="bg-white p-4 rounded-lg">
-                            <h3 class="text-base mb-4">Bộ lọc tìm kiếm</h3>
+                            <h3 class="text-base mb-4">Bộ lọc tìm kiếm:</h3>
+                            <h3 class="text-base mb-4">Search</h3>
                             <form action="tour" method="GET" class="space-y-4">
                                 <!-- Search by name -->
                                 <div class="mb-4">
@@ -171,6 +174,19 @@
                                            value="${param.search}"
                                            class="w-full border p-2 rounded" />
                                 </div> 
+                                <button type="submit"
+                                        class="w-full border border-black text-black bg-white py-2 rounded hover:bg-gray-100 transition">
+                                    Áp dụng
+                                </button>
+
+                            </form>
+
+                            <form action="tour" method="GET" class="space-y-4">
+
+                                <!-- Preserve current sort parameter if it exists -->
+                                <% if (request.getParameter("sort") != null && !request.getParameter("sort").isEmpty()) { %>
+                                <input type="hidden" name="sort" value="<%= request.getParameter("sort") %>">
+                                <% } %>
                                 <!-- Ngân sách -->
                                 <div class="mb-4">
                                     <div class="text-sm mb-2">Ngân sách:</div>
@@ -178,36 +194,44 @@
                                         <label
                                             class="flex items-center space-x-2 border rounded p-2 text-sm">
                                             <input type="checkbox" name="price"
-                                                   value="0" <%=selectedPrices
+                                                   value="0-5000000" 
+                                                   onchange="this.form.submit()"
+                                                   <%=selectedPrices
                                                    !=null &&
-                                                   Arrays.asList(selectedPrices).contains("0")
+                                                   Arrays.asList(selectedPrices).contains("0-5000000")
                                                    ? "checked" : "" %>/>
                                             <span>Dưới 5 triệu</span>
                                         </label>
                                         <label
                                             class="flex items-center space-x-2 border rounded p-2 text-sm">
                                             <input type="checkbox" name="price"
-                                                   value="5" <%=selectedPrices
+                                                   value="5000000-10000000" 
+                                                   onchange="this.form.submit()"
+                                                   <%=selectedPrices
                                                    !=null &&
-                                                   Arrays.asList(selectedPrices).contains("5")
+                                                   Arrays.asList(selectedPrices).contains("5000000-10000000")
                                                    ? "checked" : "" %>/>
                                             <span>Từ 5-10 triệu</span>
                                         </label>
                                         <label
                                             class="flex items-center space-x-2 border rounded p-2 text-sm">
                                             <input type="checkbox" name="price"
-                                                   value="10" <%=selectedPrices
+                                                   value="10000000-20000000" 
+                                                   onchange="this.form.submit()"
+                                                   <%=selectedPrices
                                                    !=null &&
-                                                   Arrays.asList(selectedPrices).contains("10")
+                                                   Arrays.asList(selectedPrices).contains("10000000-20000000")
                                                    ? "checked" : "" %>/>
                                             <span>Từ 10-20 triệu</span>
                                         </label>
                                         <label
                                             class="flex items-center space-x-2 border rounded p-2 text-sm">
                                             <input type="checkbox" name="price"
-                                                   value="20" <%=selectedPrices
+                                                   value="20000000-9999999999" 
+                                                   onchange="this.form.submit()"
+                                                   <%=selectedPrices
                                                    !=null &&
-                                                   Arrays.asList(selectedPrices).contains("20")
+                                                   Arrays.asList(selectedPrices).contains("20000000-9999999999")
                                                    ? "checked" : "" %>/>
                                             <span>Trên 20 triệu</span>
                                         </label>
@@ -218,7 +242,8 @@
                                 <div class="mb-4">
                                     <div class="text-sm mb-2">Khu vực:</div>
                                     <select name="region"
-                                            class="w-full border p-2 rounded text-sm">
+                                            class="w-full border p-2 rounded text-sm"
+                                            onchange="this.form.submit()">
                                         <option value="" ${empty param.region
                                                            ? 'selected' : '' }>Tất cả</option>
                                         <% for(String region :
@@ -237,7 +262,8 @@
                                     <div class="text-sm mb-2">Điểm khởi hành:
                                     </div>
                                     <select name="departure"
-                                            class="w-full border p-2 rounded text-sm">
+                                            class="w-full border p-2 rounded text-sm"
+                                            onchange="this.form.submit()">
                                         <option value="" ${empty param.departure
                                                            ? 'selected' : '' }>Tất cả</option>
                                         <% List<City> cities =
@@ -256,7 +282,8 @@
                                 <div class="mb-4">
                                     <div class="text-sm mb-2">Điểm đến:</div>
                                     <select name="destination"
-                                            class="w-full border p-2 rounded text-sm">
+                                            class="w-full border p-2 rounded text-sm"
+                                            onchange="this.form.submit()">
                                         <option value="" ${empty
                                                            param.destination ? 'selected' : ''
                                                 }>Tất cả</option>
@@ -275,6 +302,7 @@
                                     <div class="text-sm mb-2">Ngày đi:</div>
                                     <input type="date" name="date"
                                            value="${param.date}"
+                                           onchange="this.form.submit()"
                                            class="w-full border p-2 rounded text-sm" />
                                 </div>
 
@@ -282,7 +310,8 @@
                                 <div class="mb-4">
                                     <div class="text-sm mb-2">Phù hợp với:</div>
                                     <select name="suitable"
-                                            class="w-full border p-2 rounded text-sm">
+                                            class="w-full border p-2 rounded text-sm"
+                                            onchange="this.form.submit()">
                                         <option value="" ${empty param.suitable
                                                            ? 'selected' : '' }>Tất cả</option>
                                         <% List<String> suitables =
@@ -311,6 +340,7 @@
                                             <input type="checkbox"
                                                    name="category"
                                                    value="<%= category.getId() %>"
+                                                   onchange="this.form.submit()"
                                                    <%=categoryIds !=null &&
                                                    categoryIds.contains(category.getId())
                                                    ? "checked" : "" %>/>
@@ -322,8 +352,9 @@
                                     </div>
                                 </div>
 
-                                <button type="submit"
-                                        class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                                <button type="submit" id="applyFilterBtn"
+                                        onclick="saveFormState()" 
+                                        class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 hidden">
                                     Áp dụng
                                 </button>
                             </form>
@@ -342,22 +373,64 @@
                                 </span> chương trình tour cho quý khách</p>
                             <div class="flex items-center">
                                 <span class="text-sm mr-2">Sắp xếp theo:</span>
-                                <select name="sort"
-                                        class="border rounded p-2 text-sm"
-                                        onchange="this.form.submit()">
-                                    <option value="default" ${param.sort==null
-                                                              || param.sort=='default' ? 'selected'
-                                                              : '' }>Tất cả</option>
-                                    <option value="price_asc"
-                                            ${param.sort=='price_asc' ? 'selected'
-                                              : '' }>Giá thấp đến cao</option>
-                                    <option value="price_desc"
-                                            ${param.sort=='price_desc' ? 'selected'
-                                              : '' }>Giá cao đến thấp</option>
-                                    <option value="duration"
-                                            ${param.sort=='duration' ? 'selected'
-                                              : '' }>Thời gian tour</option>
-                                </select>
+                                <form id="sortForm" action="tour" method="GET">
+                                    <!-- Preserve all current query parameters -->
+                                    <% 
+                                    String queryString = request.getQueryString();
+                                    if (queryString != null) {
+                                        String[] params = queryString.split("&");
+                                        for (String param : params) {
+                                            if (!param.startsWith("sort=") && !param.isEmpty()) {
+                                                String[] keyValue = param.split("=");
+                                                if (keyValue.length == 2 && !keyValue[0].equals("sort")) {
+                                                    String key = keyValue[0];
+                                                    String value = keyValue[1];
+                                                    if (key.equals("price") || key.equals("category")) {
+                                                        // Handle multi-value parameters
+                                                        String[] values = request.getParameterValues(key);
+                                                        if (values != null) {
+                                                            for (String val : values) {
+                                    %>
+                                    <input type="hidden" name="<%= key %>" value="<%= val %>">
+                                    <%
+                                }
+                            }
+                        } else {
+                                    %>
+                                    <input type="hidden" name="<%= key %>" value="<%= value %>">
+                                    <%
+                                }
+                            }
+                        }
+                    }
+                }
+                                    %>
+                                    <select name="sort"
+                                            class="border rounded p-2 text-sm"
+                                            onchange="document.getElementById('sortForm').submit()">
+                                        <option value="default" ${param.sort==null
+                                                                  || param.sort=='default' ? 'selected'
+                                                                  : '' }>Tất cả</option>
+                                        <option value="price_asc"
+                                                ${param.sort=='price_asc' ? 'selected'
+                                                  : '' }>Giá thấp đến cao</option>
+                                        <option value="price_desc"
+                                                ${param.sort=='price_desc' ? 'selected'
+                                                  : '' }>Giá cao đến thấp</option>
+                                        <option value="discount_price_asc"
+                                                ${param.sort=='discount_price_asc' ? 'selected'
+                                                  : '' }>Giá sau giảm: thấp đến cao</option>
+                                        <option value="discount_price_desc"
+                                                ${param.sort=='discount_price_desc' ? 'selected'
+                                                  : '' }>Giá sau giảm: cao đến thấp</option>
+                                        <option value="discount_percent_desc"
+                                                ${param.sort=='discount_percent_desc' ? 'selected'
+                                                  : '' }>Giảm giá nhiều nhất</option>
+                                        <option value="duration"
+                                                ${param.sort=='duration' ? 'selected'
+                                                  : '' }>Thời gian tour</option>
+                                    </select>
+                                </form>
                             </div>
                         </div>
 
@@ -627,9 +700,9 @@
                                 <li> <a href="#"
                                         class="hover:text-sky-500 transition">Trợ
                                         giúp</a> </li>
-                                <li> <a href="./privacy.jsp"
+                                <li> <a href="#"
                                         class="hover:text-sky-500 transition">Chính
-                                        sách riêng tư</a> </li>
+                                        sách bảo mật</a> </li>
                                 <li> <a href="#"
                                         class="hover:text-sky-500 transition">Điều
                                         khoản sử dụng</a> </li>
@@ -705,6 +778,55 @@
                 toast.className = 'toast';
             }, 3000);
         }
+
+        // Ensure price filter checkboxes maintain their state
+        function saveFormState() {
+            const form = document.querySelector('form[action="tour"]');
+            const priceCheckboxes = form.querySelectorAll('input[name="price"]');
+
+            // Save the current state of price checkboxes to localStorage
+            const checkedPrices = Array.from(priceCheckboxes)
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.value);
+
+            if (checkedPrices.length > 0) {
+                localStorage.setItem('selectedPrices', JSON.stringify(checkedPrices));
+                console.log('Saved price filters:', checkedPrices);
+            }
+        }
+
+        // Handle form submission with price filters
+        document.addEventListener('DOMContentLoaded', function () {
+            const filterForm = document.querySelector('form[action="tour"]');
+            if (filterForm) {
+                filterForm.addEventListener('submit', function (e) {
+                    // Save form state before submission
+                    saveFormState();
+
+                    // Process the form normally
+                    // The price checkboxes now have proper range values that the backend can parse
+
+                    // Additional debugging if needed
+                    console.log('Form submitted with price filters');
+
+                    // For debugging - log the form data that will be submitted
+                    const priceCheckboxes = document.querySelectorAll('input[name="price"]:checked');
+                    console.log('Selected price ranges:', Array.from(priceCheckboxes).map(cb => cb.value));
+                });
+
+                // Add submit event to all price checkboxes to auto-submit the form
+                const priceCheckboxes = filterForm.querySelectorAll('input[name="price"]');
+                priceCheckboxes.forEach(checkbox => {
+                    checkbox.addEventListener('change', function () {
+                        filterForm.submit();
+                    });
+                });
+            }
+
+            // Show success message if URL contains a parameter indicating the fix
+            const urlParams = new URLSearchParams(window.location.search);
+
+        });
     </script>
 
 </html>

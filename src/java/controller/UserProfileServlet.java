@@ -15,23 +15,23 @@ import model.User;
 
 @WebServlet(name = "UserProfileServlet", urlPatterns = {"/user-profile"})
 @MultipartConfig(
-    fileSizeThreshold = 1024 * 1024, // 1 MB
-    maxFileSize = 1024 * 1024 * 10,  // 10 MB
-    maxRequestSize = 1024 * 1024 * 15 // 15 MB
+        fileSizeThreshold = 1024 * 1024, // 1 MB
+        maxFileSize = 1024 * 1024 * 10, // 10 MB
+        maxRequestSize = 1024 * 1024 * 15 // 15 MB
 )
 public class UserProfileServlet extends HttpServlet {
-    
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
-        
+
         if (user == null) {
             response.sendRedirect("login");
             return;
         }
-        
+
         try {
             UserDAO userDAO = new UserDAO();
             User updatedUser = userDAO.getUserById(user.getId());
@@ -46,19 +46,19 @@ public class UserProfileServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-         request.setCharacterEncoding("UTF-8");
+        request.setCharacterEncoding("UTF-8");
         HttpSession session = request.getSession();
         User sessionUser = (User) session.getAttribute("user");
-        
+
         if (sessionUser == null) {
             response.sendRedirect("login");
             return;
         }
-        
+
         String action = request.getParameter("action");
         try {
             UserDAO userDAO = new UserDAO();
-            
+
             if ("update-profile".equals(action)) {
                 User user = new User();
                 user.setId(sessionUser.getId());
@@ -67,36 +67,36 @@ public class UserProfileServlet extends HttpServlet {
                 user.setAddress(request.getParameter("address"));
                 user.setGenderFromText(request.getParameter("gender"));
                 user.setDob(request.getParameter("dob"));
-                
+
                 userDAO.updateProfile(user);
                 session.setAttribute("user", userDAO.getUserById(user.getId()));
                 request.setAttribute("success", "Cập nhật thông tin thành công");
-                
+
             } else if ("update-avatar".equals(action)) {
                 Part filePart = request.getPart("avatar");
                 String fileName = getFileName(filePart);
-                
+
                 if (fileName != null && !fileName.isEmpty()) {
                     String uploadDir = getServletContext().getRealPath("/uploads/avatars");
                     File uploadDirFile = new File(uploadDir);
                     if (!uploadDirFile.exists()) {
                         uploadDirFile.mkdirs();
                     }
-                    
+
                     String uniqueFileName = System.currentTimeMillis() + "_" + fileName;
                     String filePath = uploadDir + File.separator + uniqueFileName;
                     filePart.write(filePath);
-                    //have not used update avatar
+
                     userDAO.updateAvatar(sessionUser.getId(), "uploads/avatars/" + uniqueFileName);
                     session.setAttribute("user", userDAO.getUserById(sessionUser.getId()));
                     request.setAttribute("success", "Cập nhật ảnh đại diện thành công");
                 }
-                
+
             } else if ("change-password".equals(action)) {
                 String currentPassword = request.getParameter("currentPassword");
                 String newPassword = request.getParameter("newPassword");
                 String confirmPassword = request.getParameter("confirmPassword");
-                
+
                 if (!newPassword.equals(confirmPassword)) {
                     request.setAttribute("error", "Mật khẩu xác nhận không khớp");
                 } else {
@@ -104,16 +104,17 @@ public class UserProfileServlet extends HttpServlet {
                     request.setAttribute("success", "Đổi mật khẩu thành công");
                 }
             }
-            
+
             request.getRequestDispatcher("user-profile.jsp").forward(request, response);
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("error", "Đã xảy ra lỗi trong quá trình xử lý");
             request.getRequestDispatcher("user-profile.jsp").forward(request, response);
         }
     }
-        private String getFileName(Part part) {
+
+    private String getFileName(Part part) {
         String contentDisp = part.getHeader("content-disposition");
         String[] tokens = contentDisp.split(";");
         for (String token : tokens) {
@@ -123,5 +124,4 @@ public class UserProfileServlet extends HttpServlet {
         }
         return "";
     }
-  
-} 
+}
