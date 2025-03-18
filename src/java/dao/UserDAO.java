@@ -37,7 +37,7 @@ public class UserDAO {
     public User login(String email, String password) throws SQLException, ClassNotFoundException {
         String sql = "SELECT * FROM Account WHERE email = ? AND is_delete = 0";
         try (Connection conn = DBContext.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -46,7 +46,7 @@ public class UserDAO {
                         String inputHash = PasswordHashing.hashPassword(password);
                         System.out.println("Stored hash: " + storedHash);
                         System.out.println("Input hash: " + inputHash);
-
+                        
                         if (storedHash.equals(inputHash)) {
                             User user = new User();
                             user.setId(rs.getInt("id"));
@@ -139,9 +139,42 @@ public class UserDAO {
             ps.executeUpdate();
         }
     }
+
     public User findByEmail(String email) throws SQLException, ClassNotFoundException {
         String sql = "SELECT * FROM Account WHERE email = ? AND is_delete = 0";
-        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    User user = new User();
+                    user.setId(rs.getInt("id"));
+                    user.setFullName(rs.getString("full_name").trim());
+                    user.setEmail(rs.getString("email").trim());
+                    user.setRoleId(rs.getInt("roleId"));
+                    user.setPhone(rs.getString("phone"));
+                    user.setAddress(rs.getString("address"));
+                    user.setGender(rs.getBoolean("gender"));
+                    user.setDob(rs.getString("dob"));
+                    user.setAvatar(rs.getString("avatar"));
+                    user.setGoogleId(rs.getString("googleID"));
+                    user.setCreateDate(rs.getString("create_date"));
+                    user.setIsDelete(rs.getBoolean("is_delete"));
+                    return user;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Find a user by email regardless of whether they are banned (is_delete status)
+     * Used for checking if email exists before creating a new account
+     */
+    public User findUserByEmailIncludingBanned(String email) throws SQLException, ClassNotFoundException {
+        String sql = "SELECT * FROM Account WHERE email = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -197,7 +230,8 @@ public class UserDAO {
     }
     public void registerGoogleUser(User user) throws SQLException, ClassNotFoundException {
         String sql = "INSERT INTO Account (full_name, email, roleId, googleID, is_delete, create_date) VALUES (?, ?, ?, ?, 0, GETDATE())";
-        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, user.getFullName().trim());
             ps.setString(2, user.getEmail().trim());
             ps.setInt(3, user.getRoleId());
@@ -208,7 +242,8 @@ public class UserDAO {
 
     public void updateGoogleId(int userId, String googleId) throws SQLException, ClassNotFoundException {
         String sql = "UPDATE Account SET googleID = ? WHERE id = ?";
-        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, googleId);
             ps.setInt(2, userId);
             ps.executeUpdate();
@@ -387,8 +422,6 @@ public class UserDAO {
             
         } catch (Exception e) {
             e.printStackTrace();
-
         }
     }
 }
-

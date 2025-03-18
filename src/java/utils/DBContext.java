@@ -9,9 +9,8 @@ public class DBContext {
     private static final String dbName = "SWPver4";
     private static final String portNumber = "1433";
     private static final String instance = "";
-    private static final String userID = "trin";
-
-    private static final String password = "123";// pass default:123456
+    private static final String userID = "sa";// your sql account
+    private static final String password = "sa";// your sql password
 
     public static Connection getConnection() throws ClassNotFoundException, SQLException {
         String url = "jdbc:sqlserver://" + serverName + ":" + portNumber

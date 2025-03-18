@@ -155,7 +155,6 @@ public class TourDAO {
         List<Tour> tours = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
                 "WITH FilteredTours AS ("
-
                 + "SELECT t.*, c.name as departure_city, "
                 // Add calculation for discounted price and percentage for sorting
                 + "(SELECT TOP 1 p.discount_percentage "
@@ -270,7 +269,6 @@ public class TourDAO {
         if (sortBy != null) {
             switch (sortBy) {
                 case "price_asc":
-
                     sql.append("discounted_price ASC");
                     break;
                 case "price_desc":
@@ -279,7 +277,6 @@ public class TourDAO {
                 case "duration":
                     sql.append("duration");
                     break;
-
                 case "discount_price_asc":
                     // Sort by discounted price (price after applying promotion)
                     sql.append("discounted_price ASC");
@@ -467,7 +464,6 @@ public class TourDAO {
                 tour.setDestinationCity(rs.getString("destination_city"));
                 tour.setDiscountPercentage(rs.getDouble("discount_percentage"));
                 tours.add(tour);
-
             }
         }
         return tours;
@@ -516,7 +512,6 @@ public class TourDAO {
             
             System.out.println("Total tours retrieved: " + tours.size());
         }
-
         return tours;
     }
 
@@ -847,23 +842,52 @@ public class TourDAO {
     }
 
     public void updateTour(Tour tour) throws SQLException, ClassNotFoundException {
-        // Validate tour object
-        if (tour == null) {
-            throw new IllegalArgumentException("Tour object cannot be null");
-        }
-        
-        if (tour.getId() <= 0) {
-            throw new IllegalArgumentException("Invalid tour ID: " + tour.getId());
-        }
-        
-        System.out.println("Starting tour update for ID: " + tour.getId());
-        
         // First check if any trips for this tour have bookings
         BookingDAO bookingDAO = new BookingDAO();
-        try {
-            boolean hasBookings = bookingDAO.tourHasBookings(tour.getId());
-            System.out.println("Tour #" + tour.getId() + " has bookings: " + hasBookings);
+        if (bookingDAO.tourHasBookings(tour.getId())) {
+            System.out.println("Warning: Tour #" + tour.getId() + " has associated bookings. Only updating non-critical fields.");
             
+            // Update only non-critical fields that won't affect bookings
+            String safeSql = "UPDATE tours SET name = ?, img = ?, cuisine = ?, region = ?, "
+                    + "category_id = ?, sightseeing = ? "
+                    + "WHERE id = ?";
+                    
+            try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(safeSql)) {
+                ps.setString(1, tour.getName());
+                ps.setString(2, tour.getImg());
+                ps.setString(3, tour.getCuisine());
+                ps.setString(4, tour.getRegion());
+                ps.setInt(5, tour.getCategoryId());
+                ps.setString(6, tour.getSightseeing());
+                ps.setInt(7, tour.getId());
+                
+                System.out.println("Performing safe update of tour with ID: " + tour.getId());
+                ps.executeUpdate();
+            }
+            return;
+        }
+        
+        // If no bookings, proceed with full update
+        String sql = "UPDATE tours SET name = ?, img = ?, price_adult = ?, price_children = ?, "
+                + "duration = ?, suitable_for = ?, best_time = ?, cuisine = ?, region = ?, "
+                + "max_capacity = ?, departure_location_id = ?, category_id = ?, sightseeing = ? "
+                + "WHERE id = ?";
+                
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, tour.getName());
+            ps.setString(2, tour.getImg());
+            ps.setDouble(3, tour.getPriceAdult());
+            ps.setDouble(4, tour.getPriceChildren());
+            ps.setString(5, tour.getDuration());
+            ps.setString(6, tour.getSuitableFor());
+            ps.setString(7, tour.getBestTime());
+            ps.setString(8, tour.getCuisine());
+            ps.setString(9, tour.getRegion());
+            ps.setInt(10, tour.getMaxCapacity());
+            ps.setInt(11, tour.getDepartureLocationId());
+            ps.setInt(12, tour.getCategoryId());
+            ps.setString(13, tour.getSightseeing());
+            ps.setInt(14, tour.getId());
             if (hasBookings) {
                 System.out.println("Warning: Tour #" + tour.getId() + " has associated bookings. Only updating non-critical fields.");
                 
@@ -1211,7 +1235,6 @@ public class TourDAO {
                     "AND p.start_date <= GETDATE() " +
                     "AND p.end_date >= GETDATE() " +
                     "ORDER BY p.discount_percentage DESC " +
-
                     "OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
 
         try (Connection conn = DBContext.getConnection(); 
@@ -1229,7 +1252,6 @@ public class TourDAO {
                 tour.setDestinationCity(rs.getString("destination_city"));
                 tour.setAvailableSlot(rs.getInt("available_slot"));
                 tour.setDiscountPercentage(rs.getDouble("discount_percentage"));
-
                 tours.add(tour);
             }
         }

@@ -21,36 +21,32 @@ import model.TourImage;
 import model.TourSchedule;
 import model.Trip;
 import model.User;
-import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.logging.Logger;
-import java.util.logging.Level;
+
 @WebServlet(name = "AdminTourController", urlPatterns = {"/admin/tours/*"})
 public class AdminTourController extends HttpServlet {
- private static final Logger LOGGER = Logger.getLogger(AdminTourController.class.getName());
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
-
+        
         // Check if user is logged in and is admin (roleId = 2)
         if (user == null || user.getRoleId() != 2) {
             response.sendRedirect(request.getContextPath() + "/login.jsp");
             return;
         }
-
+        
         String pathInfo = request.getPathInfo();
         if (pathInfo == null) {
             pathInfo = "/";
         }
-
+        
         String action = pathInfo.substring(1);
         if (action.isEmpty()) {
             action = "list";
         }
-
+        
         switch (action) {
             case "list":
                 listTours(request, response);
@@ -82,7 +78,7 @@ public class AdminTourController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = request.getParameter("action");
-
+        
         switch (action) {
             case "create":
                 createTour(request, response);
@@ -112,63 +108,57 @@ public class AdminTourController extends HttpServlet {
                 listTours(request, response);
         }
     }
-
+    
     private void listTours(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
             int page = 1;
             int itemsPerPage = 10;
-
+            
             // Get page and itemsPerPage parameters
             String pageParam = request.getParameter("page");
             String itemsPerPageParam = request.getParameter("itemsPerPage");
-
+            
             if (pageParam != null && !pageParam.isEmpty()) {
                 try {
                     page = Integer.parseInt(pageParam);
-                    if (page < 1) {
-                        page = 1;
-                    }
+                    if (page < 1) page = 1;
                 } catch (NumberFormatException e) {
                     // If page is not a valid number, default to 1
                 }
             }
-
+            
             if (itemsPerPageParam != null && !itemsPerPageParam.isEmpty()) {
                 try {
                     itemsPerPage = Integer.parseInt(itemsPerPageParam);
                     // Limit items per page to prevent excessive loads
-                    if (itemsPerPage < 5) {
-                        itemsPerPage = 5;
-                    }
-                    if (itemsPerPage > 100) {
-                        itemsPerPage = 100;
-                    }
+                    if (itemsPerPage < 5) itemsPerPage = 5;
+                    if (itemsPerPage > 100) itemsPerPage = 100;
                 } catch (NumberFormatException e) {
                     // If itemsPerPage is not a valid number, default to 10
                 }
             }
-
+            
             TourDAO tourDAO = new TourDAO();
-
+            
             // Get total count of tours for pagination
             int totalTours = tourDAO.getTotalTours();
-
+            
             // Get paginated list of tours
             List<Tour> tours = tourDAO.getToursByPage(page, itemsPerPage);
-
+            
             request.setAttribute("tours", tours);
             request.setAttribute("totalTours", totalTours);
             request.setAttribute("currentPage", page);
             request.setAttribute("itemsPerPage", itemsPerPage);
-
+            
             request.getRequestDispatcher("/admin/tours.jsp").forward(request, response);
         } catch (SQLException | ClassNotFoundException e) {
             request.setAttribute("errorMessage", "Error fetching tours: " + e.getMessage());
             request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
         }
     }
-
+    
     private void viewTour(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
@@ -176,19 +166,19 @@ public class AdminTourController extends HttpServlet {
             TourDAO tourDAO = new TourDAO();
             TourImageDAO tourImageDAO = new TourImageDAO();
             TripDAO tripDAO = new TripDAO();
-
+            
             Tour tour = tourDAO.getTourById(tourId);
             List<TourImage> images = tourImageDAO.getTourImagesById(tourId);
             List<model.TourSchedule> schedules = tourDAO.getTourSchedule(tourId);
-
+            
             // Get upcoming trips
             List<Trip> upcomingTrips = tripDAO.getTripsByTourId(tourId);
-
+            
             request.setAttribute("tour", tour);
             request.setAttribute("tourImages", images);
             request.setAttribute("tourSchedules", schedules);
             request.setAttribute("upcomingTrips", upcomingTrips);
-
+            
             request.getRequestDispatcher("/admin/tour-detail.jsp").forward(request, response);
         } catch (NumberFormatException e) {
             request.setAttribute("errorMessage", "Invalid tour ID");
@@ -198,44 +188,44 @@ public class AdminTourController extends HttpServlet {
             request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
         }
     }
-
+    
     private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
             CategoryDAO categoryDAO = new CategoryDAO();
             CityDAO cityDAO = new CityDAO();
-
+            
             List<Category> categories = categoryDAO.getAllCategories();
-            List<City> cities = cityDAO.getAllCities();
-
+                List<City> cities = cityDAO.getAllCities();
+            
             request.setAttribute("categories", categories);
             request.setAttribute("cities", cities);
-
+            
             request.getRequestDispatcher("/admin/tour-form.jsp").forward(request, response);
         } catch (Exception e) {
             request.setAttribute("errorMessage", "Error preparing tour form: " + e.getMessage());
             request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
         }
     }
-
+    
     private void showEditForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
             int tourId = Integer.parseInt(request.getParameter("id"));
             TourDAO tourDAO = new TourDAO();
             Tour tour = tourDAO.getTourById(tourId);
-
+            
             // Load categories and cities for dropdowns
             CategoryDAO categoryDAO = new CategoryDAO();
             CityDAO cityDAO = new CityDAO();
-
+            
             List<Category> categories = categoryDAO.getAllCategories();
             List<City> cities = cityDAO.getAllCities();
-
+            
             request.setAttribute("tour", tour);
             request.setAttribute("categories", categories);
             request.setAttribute("cities", cities);
-
+            
             request.getRequestDispatcher("/admin/edit-tour.jsp").forward(request, response);
         } catch (NumberFormatException e) {
             request.setAttribute("errorMessage", "Invalid tour ID");
@@ -245,7 +235,7 @@ public class AdminTourController extends HttpServlet {
             request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
         }
     }
-
+    
     private void createTour(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
@@ -263,7 +253,7 @@ public class AdminTourController extends HttpServlet {
             String sightseeing = request.getParameter("sightseeing");
             int maxCapacity = Integer.parseInt(request.getParameter("maxCapacity"));
             int categoryId = Integer.parseInt(request.getParameter("categoryId"));
-
+            
             // Create Tour object
             Tour tour = new Tour();
             tour.setName(name);
@@ -279,11 +269,11 @@ public class AdminTourController extends HttpServlet {
             tour.setSightseeing(sightseeing);
             tour.setMaxCapacity(maxCapacity);
             tour.setCategoryId(categoryId);
-
+            
             // Add tour to database
             TourDAO tourDAO = new TourDAO();
             int tourId = tourDAO.createTour(tour);
-
+            
             if (tourId > 0) {
                 // Success message
                 request.getSession().setAttribute("successMessage", "Tour created successfully!");
@@ -301,14 +291,14 @@ public class AdminTourController extends HttpServlet {
             showCreateForm(request, response);
         }
     }
-
+    
     private void updateTour(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
             int tourId = Integer.parseInt(request.getParameter("tourId"));
             String name = request.getParameter("name");
             String img = request.getParameter("img");
-
+            
             // Parse numeric values safely with defaults if missing
             double priceAdult = 0;
             try {
@@ -316,21 +306,21 @@ public class AdminTourController extends HttpServlet {
             } catch (Exception e) {
                 // Use default or log error
             }
-
+            
             double priceChildren = 0;
             try {
                 priceChildren = Double.parseDouble(request.getParameter("priceChildren"));
             } catch (Exception e) {
                 // Use default or log error
             }
-
+            
             String duration = request.getParameter("duration");
             String suitableFor = request.getParameter("suitableFor");
             String bestTime = request.getParameter("bestTime");
             String cuisine = request.getParameter("cuisine");
             String region = request.getParameter("region");
             String sightseeing = request.getParameter("sightseeing");
-
+            
             // Set defaults for potentially missing parameters
             int availableSlot = 0;
             String availableSlotStr = request.getParameter("availableSlot");
@@ -341,7 +331,7 @@ public class AdminTourController extends HttpServlet {
                     // Use default
                 }
             }
-
+            
             int maxCapacity = 0;
             String maxCapacityStr = request.getParameter("maxCapacity");
             if (maxCapacityStr != null && !maxCapacityStr.isEmpty()) {
@@ -351,7 +341,7 @@ public class AdminTourController extends HttpServlet {
                     // Use default
                 }
             }
-
+            
             int departureLocationId = 0;
             String departureLocationIdStr = request.getParameter("departureLocationId");
             if (departureLocationIdStr != null && !departureLocationIdStr.isEmpty()) {
@@ -361,12 +351,12 @@ public class AdminTourController extends HttpServlet {
                     // Use default
                 }
             }
-
+            
             String departureCity = request.getParameter("departureCity");
             if (departureCity == null) {
                 departureCity = "";
             }
-
+            
             int categoryId = 0;
             String categoryIdStr = request.getParameter("categoryId");
             if (categoryIdStr != null && !categoryIdStr.isEmpty()) {
@@ -376,12 +366,12 @@ public class AdminTourController extends HttpServlet {
                     // Use default
                 }
             }
-
+            
             String destinationCity = request.getParameter("destinationCity");
             if (destinationCity == null) {
                 destinationCity = "";
             }
-
+            
             double discountPercentage = 0;
             String discountPercentageStr = request.getParameter("discountPercentage");
             if (discountPercentageStr != null && !discountPercentageStr.isEmpty()) {
@@ -404,76 +394,68 @@ public class AdminTourController extends HttpServlet {
             // Set success message
             HttpSession session = request.getSession();
             session.setAttribute("successMessage", "Tour updated successfully!");
-
+            
             response.sendRedirect(request.getContextPath() + "/admin/tours");
         } catch (Exception e) {
             request.setAttribute("errorMessage", "Error updating tour: " + e.getMessage());
             request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
         }
     }
-
+    
     private void deleteTour(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         // Implementation for deleting a tour
         // This would involve marking the tour as deleted in the database
         response.sendRedirect(request.getContextPath() + "/admin/tours");
     }
-
+    
     private void viewTourTrips(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
             int tourId = Integer.parseInt(request.getParameter("id"));
             int page = 1;
             int itemsPerPage = 10;
-
+            
             // Get page and itemsPerPage parameters
             String pageParam = request.getParameter("page");
             String itemsPerPageParam = request.getParameter("itemsPerPage");
-
+            
             if (pageParam != null && !pageParam.isEmpty()) {
                 try {
                     page = Integer.parseInt(pageParam);
-                    if (page < 1) {
-                        page = 1;
-                    }
+                    if (page < 1) page = 1;
                 } catch (NumberFormatException e) {
                     // If page is not a valid number, default to 1
                 }
             }
-
+            
             if (itemsPerPageParam != null && !itemsPerPageParam.isEmpty()) {
                 try {
                     itemsPerPage = Integer.parseInt(itemsPerPageParam);
-                    if (itemsPerPage < 5) {
-                        itemsPerPage = 5;
-                    }
-                    if (itemsPerPage > 100) {
-                        itemsPerPage = 100;
-                    }
+                    if (itemsPerPage < 5) itemsPerPage = 5;
+                    if (itemsPerPage > 100) itemsPerPage = 100;
                 } catch (NumberFormatException e) {
                     // If itemsPerPage is not a valid number, default to 10
                 }
             }
-
+            
             TourDAO tourDAO = new TourDAO();
             TripDAO tripDAO = new TripDAO();
-
+            
             Tour tour = tourDAO.getTourById(tourId);
-
+            
             // Get total count of trips for this tour
             int totalTrips = tripDAO.getTotalTripsByTourId(tourId);
-
+            
             // Get paginated list of trips
             List<Trip> trips = tripDAO.getTripsByTourIdPaginated(tourId, page, itemsPerPage);
-            CityDAO city = new CityDAO();
-//            city.getCityById(page)
-
+            
             request.setAttribute("tour", tour);
             request.setAttribute("trips", trips);
             request.setAttribute("totalTrips", totalTrips);
             request.setAttribute("currentPage", page);
             request.setAttribute("itemsPerPage", itemsPerPage);
-
+            
             request.getRequestDispatcher("/admin/tour-trips.jsp").forward(request, response);
         } catch (NumberFormatException e) {
             request.setAttribute("errorMessage", "Invalid tour ID");
@@ -483,110 +465,37 @@ public class AdminTourController extends HttpServlet {
             request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
         }
     }
-private void createTrip(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
-    try {
-        // Lấy dữ liệu từ request
-        int tourId = Integer.parseInt(request.getParameter("tourId"));
-        Timestamp departureDate = convertToTimestamp(request.getParameter("departureDate"));
-        Timestamp returnDate = convertToTimestamp(request.getParameter("returnDate"));
-        String startTime = request.getParameter("startTime");
-        String endTime = request.getParameter("endTime");
-        int availableSlot = Integer.parseInt(request.getParameter("availableSlot"));
-        String status = request.getParameter("status");
-
-        // Log dữ liệu nhận được
-        LOGGER.log(Level.INFO, "TourID of CreateTrip: {0}", tourId);
-
-        // Tạo đối tượng Trip
-        Trip trip = new Trip();
-        trip.setTourId(tourId);
-        trip.setDepartureDate(departureDate);
-        trip.setReturnDate(returnDate);
-        trip.setStartTime(startTime);
-        trip.setEndTime(endTime);
-        trip.setAvailableSlot(availableSlot);
-        trip.setStatus(status);
-        trip.setIsDelete(false);
-
-        LOGGER.log(Level.INFO, "Trip of create trip: {0}", trip.toString());
-
-        // Gọi DAO để thêm vào database
-        TripDAO tripDAO = new TripDAO();
-        tripDAO.addTrip(trip);
-
-        response.sendRedirect(request.getContextPath() + "/admin/tours/trips?id=" +  request.getParameter("tourId")+ "&success=create");
-    } catch (NumberFormatException e) {
-        e.printStackTrace();
-        response.sendRedirect(request.getContextPath() + "/admin/tours/trips?id=" + request.getParameter("tourId") + "&error=invalid_input");
-    } catch (Exception e) {
-        e.printStackTrace();
-        response.sendRedirect(request.getContextPath() + "/admin/tours/trips?id=" + request.getParameter("tourId") + "&error=create");
+    
+    private void createTrip(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Implementation for creating a trip
+        response.sendRedirect(request.getContextPath() + "/admin/tours/trips?id=" + request.getParameter("tourId"));
     }
-}
-
-
+    
     private void updateTrip(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try {
-            int tripId = Integer.parseInt(request.getParameter("tripId"));
-            Timestamp departureDate = convertToTimestamp(request.getParameter("departureDate"));
-            Timestamp returnDate = convertToTimestamp(request.getParameter("returnDate"));
-            String startTime = request.getParameter("startTime");
-            String endTime = request.getParameter("endTime");
-            int availableSlot = Integer.parseInt(request.getParameter("availableSlot"));
-            String status = request.getParameter("status");
-            TripDAO tripDAO = new TripDAO();
-            Trip trip = tripDAO.getTripById(tripId);
-            if (trip != null) {
-                trip.setDepartureDate(departureDate);
-                trip.setReturnDate(returnDate);
-                trip.setStartTime(startTime);
-                trip.setEndTime(endTime);
-                trip.setAvailableSlot(availableSlot);
-                trip.setStatus(status);
-
-                tripDAO.updateTrip(trip);
-            }
-
-            response.sendRedirect(request.getContextPath() + "/admin/tours/trips?id=" + request.getParameter("tourId") + "&success=update");
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/admin/tours/trips?id=" + request.getParameter("tourId") + "&error=update");
-        }
+        // Implementation for updating a trip
+        response.sendRedirect(request.getContextPath() + "/admin/tours/trips?id=" + request.getParameter("tourId"));
     }
-
+    
     private void deleteTrip(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try {
-            int tripId = Integer.parseInt(request.getParameter("tripId"));
-            TripDAO tripDAO = new TripDAO();
-            tripDAO.deleteTrip(tripId);
-
-            response.sendRedirect(request.getContextPath() + "/admin/tours/trips?id=" + request.getParameter("tourId") + "&success=delete");
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/admin/tours/trips?id=" + request.getParameter("tourId") + "&error=delete");
-        }
+        // Implementation for deleting a trip
+        response.sendRedirect(request.getContextPath() + "/admin/tours/trips?id=" + request.getParameter("tourId"));
     }
-
-    private Timestamp convertToTimestamp(String dateStr) throws ParseException {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        return new Timestamp(dateFormat.parse(dateStr).getTime());
-    }
-
+    
     private void viewTourSchedules(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
             int tourId = Integer.parseInt(request.getParameter("id"));
             TourDAO tourDAO = new TourDAO();
-
+            
             Tour tour = tourDAO.getTourById(tourId);
             List<TourSchedule> schedules = tourDAO.getTourSchedule(tourId);
-
+            
             request.setAttribute("tour", tour);
             request.setAttribute("tourSchedules", schedules);
-
+            
             request.getRequestDispatcher("/admin/tour-schedules.jsp").forward(request, response);
         } catch (NumberFormatException e) {
             request.setAttribute("errorMessage", "Invalid tour ID");
@@ -596,7 +505,7 @@ private void createTrip(HttpServletRequest request, HttpServletResponse response
             request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
         }
     }
-
+    
     private void createSchedule(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
@@ -604,16 +513,16 @@ private void createTrip(HttpServletRequest request, HttpServletResponse response
             int dayNumber = Integer.parseInt(request.getParameter("dayNumber"));
             String itinerary = request.getParameter("itinerary");
             String description = request.getParameter("description");
-
+            
             TourSchedule schedule = new TourSchedule();
             schedule.setTourId(tourId);
             schedule.setDayNumber(dayNumber);
             schedule.setItinerary(itinerary);
             schedule.setDescription(description);
-
+            
             TourDAO tourDAO = new TourDAO();
             tourDAO.addTourSchedule(schedule);
-
+            
             response.sendRedirect(request.getContextPath() + "/admin/tours/schedules?id=" + tourId);
         } catch (NumberFormatException e) {
             request.setAttribute("errorMessage", "Invalid input data");
@@ -623,7 +532,7 @@ private void createTrip(HttpServletRequest request, HttpServletResponse response
             request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
         }
     }
-
+    
     private void updateSchedule(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
@@ -632,17 +541,17 @@ private void createTrip(HttpServletRequest request, HttpServletResponse response
             int dayNumber = Integer.parseInt(request.getParameter("dayNumber"));
             String itinerary = request.getParameter("itinerary");
             String description = request.getParameter("description");
-
+            
             TourSchedule schedule = new TourSchedule();
             schedule.setId(scheduleId);
             schedule.setTourId(tourId);
             schedule.setDayNumber(dayNumber);
             schedule.setItinerary(itinerary);
             schedule.setDescription(description);
-
+            
             TourDAO tourDAO = new TourDAO();
             tourDAO.updateTourSchedule(schedule);
-
+            
             response.sendRedirect(request.getContextPath() + "/admin/tours/schedules?id=" + tourId);
         } catch (NumberFormatException e) {
             request.setAttribute("errorMessage", "Invalid input data");
@@ -652,16 +561,16 @@ private void createTrip(HttpServletRequest request, HttpServletResponse response
             request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
         }
     }
-
+    
     private void deleteSchedule(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
             int scheduleId = Integer.parseInt(request.getParameter("scheduleId"));
             int tourId = Integer.parseInt(request.getParameter("tourId"));
-
+            
             TourDAO tourDAO = new TourDAO();
             tourDAO.deleteTourSchedule(scheduleId);
-
+            
             response.sendRedirect(request.getContextPath() + "/admin/tours/schedules?id=" + tourId);
         } catch (NumberFormatException e) {
             request.setAttribute("errorMessage", "Invalid schedule ID");

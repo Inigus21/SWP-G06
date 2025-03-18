@@ -38,8 +38,8 @@ public class Trip {
         this.tourId = tourId;
         this.departureDate = departureDate;
         this.returnDate = returnDate;
-        setStartTime(startTime); // Use setter for validation
-        setEndTime(endTime);     // Use setter for validation
+        this.startTime = startTime;
+        this.endTime = endTime;
         this.availableSlot = availableSlot;
         this.createdDate = createdDate;
         this.deletedDate = deletedDate;
@@ -150,7 +150,6 @@ public class Trip {
     public void setTour(Tour tour) {
         this.tour = tour;
     }
-    
     /**
      * Format a date as SQL Server datetime string (YYYY-MM-DD HH:MM:SS)
      * @return Formatted datetime string
@@ -234,7 +233,6 @@ public class Trip {
         // If no match, return original or default
         return timeStr.length() <= 8 ? timeStr : "00:00:00";
     }
-    
     @Override
     public String toString() {
         return "Trip{" + "id=" + id + ", departureCityId=" + departureCityId + ", destinationCityId=" + destinationCityId + 
