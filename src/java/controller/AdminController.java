@@ -22,6 +22,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.text.NumberFormat;
+import java.util.Locale;
 import model.Booking;
 import model.Category;
 import model.City;
@@ -175,12 +177,14 @@ public class AdminController extends HttpServlet {
                     monthlyRevenue.put(rs.getString("month"), rs.getDouble("revenue"));
                 }
             }
+            NumberFormat formatter = NumberFormat.getInstance(Locale.US);
+            String formattedRevenue = formatter.format(totalRevenue);
             
             // Set attributes for the JSP
             request.setAttribute("totalTours", totalTours);
             request.setAttribute("totalBookings", totalBookings);
             request.setAttribute("totalUsers", totalUsers);
-            request.setAttribute("totalRevenue", totalRevenue);
+            request.setAttribute("totalRevenue",formattedRevenue );
             request.setAttribute("recentBookings", recentBookings);
             request.setAttribute("popularTours", popularTours);
             request.setAttribute("monthlyRevenue", monthlyRevenue);
