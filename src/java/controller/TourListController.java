@@ -1,8 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
-
 package controller;
 
 import dao.TourDAO;
@@ -20,8 +15,8 @@ import model.Tour;
 
 @WebServlet(name = "TourListController", urlPatterns = {"/tour"})
 public class TourListController extends HttpServlet {
-   
-     @Override
+
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
@@ -42,13 +37,35 @@ public class TourListController extends HttpServlet {
             String[] selectedCategories = request.getParameterValues("category");
             String sortBy = request.getParameter("sort");
 
+            // Debug requested parameters
+            System.out.println("==== FILTER DEBUG INFO ====");
+            System.out.println("Requested URL: " + request.getRequestURL() + "?" + request.getQueryString());
+            System.out.println("Selected prices parameter: " + (selectedPrices != null ? Arrays.toString(selectedPrices) : "null"));
+
             // Convert price ranges
             double[] priceRanges = null;
             if (selectedPrices != null) {
+                System.out.println("Selected price ranges: " + Arrays.toString(selectedPrices));
                 priceRanges = new double[selectedPrices.length];
                 for (int i = 0; i < selectedPrices.length; i++) {
-                    priceRanges[i] = Double.parseDouble(selectedPrices[i]);
+                    try {
+                        // Check if the price range is in the new format "min-max"
+                        if (selectedPrices[i].contains("-")) {
+                            // Extract the minimum value from the range
+                            String minValueStr = selectedPrices[i].split("-")[0];
+                            priceRanges[i] = Double.parseDouble(minValueStr);
+                            System.out.println("Parsed price range: " + selectedPrices[i] + " -> " + priceRanges[i]);
+                        } else {
+                            // Old format, directly parse
+                            priceRanges[i] = Double.parseDouble(selectedPrices[i]);
+                            System.out.println("Parsed price (old format): " + priceRanges[i]);
+                        }
+                    } catch (NumberFormatException e) {
+                        System.out.println("Error parsing price range: " + selectedPrices[i] + " - " + e.getMessage());
+                    }
                 }
+            } else {
+                System.out.println("No price ranges selected");
             }
 
             // Convert category IDs
