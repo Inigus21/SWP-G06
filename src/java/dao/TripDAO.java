@@ -236,7 +236,12 @@ public class TripDAO {
      * @param trip The trip to create
      * @return The ID of the created trip, or -1 if an error occurred
      */
-   public int createTrip(Trip trip) {
+    /**
+     * Create a new trip
+     * @param trip The trip to create
+     * @return The ID of the created trip, or -1 if an error occurred
+     */
+    public int createTrip(Trip trip) {
         // Sử dụng style format 120 (YYYY-MM-DD HH:MM:SS) cho datetime và 108 (HH:MM:SS) cho time
         String sql = "INSERT INTO trip (tour_id, departure_city_id, destination_city_id, " +
                      "departure_date, return_date, start_time, end_time, available_slot, created_date, is_delete) " +
@@ -406,7 +411,76 @@ public class TripDAO {
         
         return -1;
     }
-     
+    
+    /**
+     * Alternative createTrip method with a different SQL approach
+     * Used as fallback when the primary method fails
+     */
+    private int createTripAlternative(Trip trip) {
+        System.out.println("Attempting alternative approach to create trip...");
+        
+        // Sử dụng cách tiếp cận khác với SQL
+        String sql = "INSERT INTO trip (tour_id, departure_city_id, destination_city_id, " +
+                     "departure_date, return_date, start_time, end_time, available_slot, created_date, is_delete) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), 0)";
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            
+            // Set basic parameters
+            stmt.setInt(1, trip.getTourId());
+            
+            // Set cities
+            int departureCityId = trip.getDepartureCityId() <= 0 ? 1 : trip.getDepartureCityId();
+            int destinationCityId = trip.getDestinationCityId() <= 0 ? 1 : trip.getDestinationCityId();
+            stmt.setInt(2, departureCityId);
+            stmt.setInt(3, destinationCityId);
+            
+            // Set dates directly using Timestamp
+            stmt.setTimestamp(4, trip.getDepartureDate());
+            stmt.setTimestamp(5, trip.getReturnDate());
+            
+            // Clean and set time strings
+            String startTime = trip.getStartTime();
+            if (startTime == null || startTime.isEmpty()) {
+                startTime = "00:00";
+            } else if (startTime.length() > 8) {
+                startTime = startTime.substring(0, 8); // Limit to 8 chars max (HH:MM:SS)
+            }
+            
+            String endTime = trip.getEndTime();
+            if (endTime == null || endTime.isEmpty()) {
+                endTime = "23:59";
+            } else if (endTime.length() > 8) {
+                endTime = endTime.substring(0, 8); // Limit to 8 chars max (HH:MM:SS)
+            }
+            
+            // Set times and available slots
+            stmt.setString(6, startTime);
+            stmt.setString(7, endTime);
+            stmt.setInt(8, trip.getAvailableSlot());
+            
+            // Execute
+            int rowsAffected = stmt.executeUpdate();
+            System.out.println("Alternative SQL execution completed. Rows affected: " + rowsAffected);
+            
+            if (rowsAffected > 0) {
+                try (ResultSet rs = stmt.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        int newId = rs.getInt(1);
+                        System.out.println("Successfully created trip with ID (alternative method): " + newId);
+                        return newId;
+                    }
+                }
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            System.out.println("Error in alternative createTrip: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return -1;
+    }
+    
     public boolean updateTrip(Trip trip) {
         // First check if this trip has bookings
         BookingDAO bookingDAO = new BookingDAO();
