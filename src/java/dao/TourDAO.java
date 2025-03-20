@@ -515,6 +515,54 @@ public class TourDAO {
         
         return tours;
     }
+    
+    /**
+     * Get top 6 popular tours directly from the database for homepage
+     * @param limit Number of tours to return
+     * @return List of tours 
+     * @throws SQLException If database access error occurs
+     * @throws ClassNotFoundException If the database driver class is not found
+     */
+    public List<Tour> getPopularToursForHomepage(int limit) throws SQLException, ClassNotFoundException {
+        List<Tour> tours = new ArrayList<>();
+        
+        // SQL Server doesn't support parameterized TOP, so we need to use a different approach
+        String sql = "SELECT DISTINCT t.id, t.name, t.img, t.duration, t.price_adult, t.price_children, t.max_capacity, " +
+                    "c.name AS departure_city " +
+                    "FROM tours t " +
+                    "JOIN city c ON t.departure_location_id = c.id " +
+                    "JOIN trip tr ON t.id = tr.tour_id " +
+                    "WHERE tr.available_slot > 0 " +
+                    "ORDER BY t.id " +
+                    "OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY ";
+
+        try (Connection conn = DBContext.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            
+            System.out.println("Executing SQL: " + sql);
+            
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Tour tour = new Tour();
+                tour.setId(rs.getInt("id"));
+                tour.setName(rs.getString("name"));
+                tour.setImg(rs.getString("img"));
+                tour.setDuration(rs.getString("duration"));
+                tour.setPriceAdult(rs.getDouble("price_adult"));
+                tour.setPriceChildren(rs.getDouble("price_children"));
+                tour.setAvailableSlot(rs.getInt("max_capacity")); // Default available slots if not in query
+                tour.setDepartureCity(rs.getString("departure_city"));
+                
+                System.out.println("Retrieved tour: " + tour.getId() + " - " + tour.getName());
+                
+                tours.add(tour);
+            }
+            
+            System.out.println("Total tours retrieved: " + tours.size());
+        }
+        return tours;
+    }
 
     public Trip getNearestFutureTrip(int tourId) {
         String sql = "SELECT TOP 1 * FROM trip WHERE tour_id = ? AND departure_date > GETDATE() AND is_delete = 0 ORDER BY departure_date ASC";
@@ -1202,7 +1250,7 @@ public class TourDAO {
                     "JOIN tour_promotion tp ON t.id = tp.tour_id " +
                     "JOIN promotion p ON tp.promotion_id = p.id " +
                     "WHERE tr.departure_date >= GETDATE() " +
-                    "AND tr.departure_date <= DATEADD(day, 7, GETDATE()) " + 
+                    "AND tr.departure_date <= DATEADD(day, 100, GETDATE()) " + 
                     "AND tr.available_slot > 0 " +
                     "AND p.start_date <= GETDATE() " +
                     "AND p.end_date >= GETDATE() " +
