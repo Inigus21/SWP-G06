@@ -278,7 +278,7 @@ public class AdminCategoryController extends HttpServlet {
             session.setAttribute("successMessage", "Category deleted successfully!");
             
             // Redirect to the categories list page
-            response.sendRedirect(request.getContextPath() + "/admin/category")
+            response.sendRedirect(request.getContextPath() + "/admin/category");
         } catch (NumberFormatException e) {
             request.setAttribute("errorMessage", "Invalid category ID");
             request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
