@@ -512,6 +512,7 @@ public class TourDAO {
             
             System.out.println("Total tours retrieved: " + tours.size());
         }
+        
         return tours;
     }
 
@@ -841,7 +842,7 @@ public class TourDAO {
         return relatedTours;
     }
 
-     public void updateTour(Tour tour) throws SQLException, ClassNotFoundException {
+    public void updateTour(Tour tour) throws SQLException, ClassNotFoundException {
         // Validate tour object
         if (tour == null) {
             throw new IllegalArgumentException("Tour object cannot be null");
@@ -963,6 +964,7 @@ public class TourDAO {
             throw new SQLException("Error updating tour: " + e.getMessage(), e);
         }
     }
+
     /**
      * Gets a page of tours with pagination
      * @param page The page number (1-based)
