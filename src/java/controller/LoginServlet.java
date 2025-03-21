@@ -19,6 +19,7 @@ import com.google.gson.JsonObject;
 
 @WebServlet(name = "LoginServlet", urlPatterns = {"/login"})
 public class LoginServlet extends HttpServlet {
+
     private static final String GOOGLE_CLIENT_ID = "426229865715-6j4c6434pinslumq0m1l8mqjkcf6i3fv.apps.googleusercontent.com"; // Replace with your Google Client ID
 
     @Override
@@ -31,14 +32,14 @@ public class LoginServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = request.getParameter("action");
-        
+
         if ("google_login".equals(action)) {
             handleGoogleLogin(request, response);
         } else {
             handleNormalLogin(request, response);
         }
     }
-    
+
     private void handleNormalLogin(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
@@ -46,25 +47,47 @@ public class LoginServlet extends HttpServlet {
             String password = request.getParameter("password");
             String remember = request.getParameter("remember");
             String prevPage = request.getParameter("prevPage");
-            
+
             UserDAO userDAO = new UserDAO();
+
+            // First check if the email exists but account is banned
+            User checkUser = userDAO.findByEmail(email);
+            if (checkUser != null && checkUser.isIsDelete()) {
+                request.setAttribute("error", "Tài khoản của bạn đã bị cấm. Vui lòng liên hệ với quản trị viên để biết thêm chi tiết.");
+                request.getRequestDispatcher("login.jsp").forward(request, response);
+                return;
+            }
+
             User user = userDAO.login(email, password);
-            
+
             if (user != null) {
                 HttpSession session = request.getSession();
                 session.setAttribute("user", user);
-                
+
                 if (remember != null) {
                     // Implement remember me functionality if needed
                 }
-                
+
                 // Redirect to admin page if user is an admin (roleId = 2)
                 if (user.getRoleId() == 2) {
                     response.sendRedirect(request.getContextPath() + "/admin");
                 } else if (prevPage != null && !prevPage.isEmpty() && !prevPage.contains("/login") && !prevPage.contains("/register")) {
                     response.sendRedirect(prevPage);
                 } else {
-                    response.sendRedirect("home.jsp");
+                    // Handle redirect if available
+                    String redirect = request.getParameter("redirect");
+                    if (redirect != null && !redirect.isEmpty()) {
+                        if (redirect.equals("booking")) {
+                            String tourId = request.getParameter("tourId");
+                            if (tourId != null && !tourId.isEmpty()) {
+                                response.sendRedirect("booking?tourId=" + tourId);
+                                return;
+                            }
+                        }
+                    }
+
+                    // Default redirect to home
+                    response.sendRedirect("home");
                 }
             } else {
                 request.setAttribute("error", "Email hoặc mật khẩu không đúng");
@@ -75,16 +98,16 @@ public class LoginServlet extends HttpServlet {
             request.getRequestDispatcher("login.jsp").forward(request, response);
         }
     }
-    
+
     private void handleGoogleLogin(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
             String idTokenString = request.getParameter("credential");
             String prevPage = request.getParameter("prevPage");
-            
+
             GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
-                .setAudience(Collections.singletonList(GOOGLE_CLIENT_ID))
-                .build();
+                    .setAudience(Collections.singletonList(GOOGLE_CLIENT_ID))
+                    .build();
 
             GoogleIdToken idToken = verifier.verify(idTokenString);
             if (idToken != null) {
@@ -92,10 +115,10 @@ public class LoginServlet extends HttpServlet {
                 String email = payload.getEmail();
                 String googleId = payload.getSubject();
                 String name = (String) payload.get("name");
-                
+
                 UserDAO userDAO = new UserDAO();
                 User user = userDAO.findByEmail(email);
-                
+
                 if (user == null) {
                     // Create new user
                     user = new User();
@@ -110,18 +133,30 @@ public class LoginServlet extends HttpServlet {
                     user.setGoogleId(googleId);
                     userDAO.updateGoogleId(user.getId(), googleId);
                 }
-                
+
                 // Set session
                 HttpSession session = request.getSession();
                 session.setAttribute("user", user);
-                
+
+                // Handle redirect if available
+                String redirect = request.getParameter("redirect");
+                if (redirect != null && !redirect.isEmpty()) {
+                    if (redirect.equals("booking")) {
+                        String tourId = request.getParameter("tourId");
+                        if (tourId != null && !tourId.isEmpty()) {
+                            response.sendRedirect("booking?tourId=" + tourId);
+                            return;
+                        }
+                    }
+                }
+
                 // Redirect to admin page if user is an admin (roleId = 2)
                 if (user.getRoleId() == 2) {
                     response.sendRedirect(request.getContextPath() + "/admin");
                 } else if (prevPage != null && !prevPage.isEmpty() && !prevPage.contains("/login") && !prevPage.contains("/register")) {
                     response.sendRedirect(prevPage);
                 } else {
-                    response.sendRedirect("home.jsp");
+                    response.sendRedirect("home");
                 }
             } else {
                 request.setAttribute("error", "Invalid ID token");
@@ -133,4 +168,4 @@ public class LoginServlet extends HttpServlet {
             e.printStackTrace();
         }
     }
-} 
+}
