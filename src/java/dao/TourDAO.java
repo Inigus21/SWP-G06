@@ -517,7 +517,7 @@ public class TourDAO {
     }
     
     /**
-     * Get top popular tours directly from the database for homepage
+     * Get top 6 popular tours directly from the database for homepage
      * @param limit Number of tours to return
      * @return List of tours 
      * @throws SQLException If database access error occurs
@@ -527,7 +527,8 @@ public class TourDAO {
         List<Tour> tours = new ArrayList<>();
         
         // SQL Server doesn't support parameterized TOP, so we need to use a different approach
-        String sql = "SELECT DISTINCT t.id, t.name, t.img, t.duration, t.price_adult, t.price_children, " +
+        //String sql = "SELECT DISTINCT t.id, t.name, t.img, t.duration, t.price_adult, t.price_children, " +
+        String sql = "SELECT DISTINCT t.id, t.name, t.img, t.duration, t.price_adult, t.price_children, t.max_capacity, " +
                     "c.name AS departure_city " +
                     "FROM tours t " +
                     "JOIN city c ON t.departure_location_id = c.id " +
@@ -551,8 +552,10 @@ public class TourDAO {
                 tour.setDuration(rs.getString("duration"));
                 tour.setPriceAdult(rs.getDouble("price_adult"));
                 tour.setPriceChildren(rs.getDouble("price_children"));
+                //tour.setDepartureCity(rs.getString("departure_city"));
+                //tour.setAvailableSlot(20); // Default available slots if not in query
+                tour.setAvailableSlot(rs.getInt("max_capacity")); // Default available slots if not in query
                 tour.setDepartureCity(rs.getString("departure_city"));
-                tour.setAvailableSlot(20); // Default available slots if not in query
                 
                 System.out.println("Retrieved tour: " + tour.getId() + " - " + tour.getName());
                 
@@ -1250,7 +1253,7 @@ public class TourDAO {
                     "JOIN tour_promotion tp ON t.id = tp.tour_id " +
                     "JOIN promotion p ON tp.promotion_id = p.id " +
                     "WHERE tr.departure_date >= GETDATE() " +
-                    "AND tr.departure_date <= DATEADD(day, 7, GETDATE()) " + 
+                    "AND tr.departure_date <= DATEADD(day, 100, GETDATE()) " + 
                     "AND tr.available_slot > 0 " +
                     "AND p.start_date <= GETDATE() " +
                     "AND p.end_date >= GETDATE() " +

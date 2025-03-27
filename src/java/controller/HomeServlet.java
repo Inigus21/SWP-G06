@@ -66,6 +66,7 @@ public class HomeServlet extends HttpServlet {
             // Get popular tours (for featured tours section)
             List<Tour> popularTours = new ArrayList<>();
             try {
+
                 // Get only real top 3 tours from database - no fallbacks
                 popularTours = tourDAO.getPopularToursForHomepage(6);
                 getServletContext().log("HomeServlet: Retrieved " + popularTours.size() + " tours from database for Tour section");
@@ -104,7 +105,7 @@ public class HomeServlet extends HttpServlet {
             // Get last-minute deals (tours with special promotions within the next 7 days)
             List<Tour> lastMinuteDeals = null;
             try {
-                lastMinuteDeals = tourDAO.getLastMinuteDeals(3);
+                lastMinuteDeals = tourDAO.getLastMinuteDeals(6);
                 getServletContext().log("HomeServlet: Retrieved " + (lastMinuteDeals != null ? lastMinuteDeals.size() : 0) + " last-minute deals");
             } catch (Exception e) {
                 getServletContext().log("HomeServlet: Error getting last-minute deals: " + e.getMessage());
