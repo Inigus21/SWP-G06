@@ -1,9 +1,27 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ page import="dao.BookingDAO" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Date" %>
+<%@ page import="java.text.NumberFormat" %>
+<%@ page import="java.text.DecimalFormat" %>
+<%@ page import="java.text.DecimalFormatSymbols" %>
+<%@ page import="java.util.Locale" %>
+<%@ page import="java.util.Currency" %>
+
+<%
+    // Format currency
+    NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+    currencyFormatter.setCurrency(Currency.getInstance("VND"));
+    DecimalFormatSymbols dfs = new DecimalFormatSymbols(new Locale("vi", "VN"));
+    dfs.setCurrencySymbol("VNĐ");
+    ((DecimalFormat) currencyFormatter).setDecimalFormatSymbols(dfs);
+    
+    // Make formatter available in EL
+    pageContext.setAttribute("currencyFormatter", currencyFormatter);
+%>
 <jsp:include page="layout/header.jsp">
     <jsp:param name="active" value="bookings"/>
 </jsp:include>
@@ -42,7 +60,7 @@
                         <div class="col-md-3 mb-2">
                             <select id="statusFilter" class="form-select">
                                 <option value="">Tất cả trạng thái</option>
-                                <option value="Chờ thanh toán" ${param.status == 'Chờ thanh toán' ? 'selected' : ''}>Chờ thanh toán</option>
+                            
                                 <option value="Đã thanh toán" ${param.status == 'Đã thanh toán' ? 'selected' : ''}>Đã thanh toán</option>
                                 <option value="Đã duyệt" ${param.status == 'Đã duyệt' ? 'selected' : ''}>Đã duyệt</option>
                                 <option value="Đã hủy" ${param.status == 'Đã hủy' ? 'selected' : ''}>Đã hủy</option>
@@ -105,9 +123,7 @@
                                         </td>
                                         <td>
                                             <c:choose>
-                                                <c:when test="${booking.status == 'Chờ thanh toán'}">
-                                                    <span class="badge bg-warning">Chờ thanh toán</span>
-                                                </c:when>
+                                   
                                                 <c:when test="${booking.status == 'Đã thanh toán'}">
                                                     <span class="badge bg-primary">Đã thanh toán</span>
                                                 </c:when>
