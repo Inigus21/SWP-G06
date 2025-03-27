@@ -198,11 +198,6 @@ public class UserDAO {
         return null;
     }
 
-    /**
-     * Find a user by email regardless of whether they are banned (is_delete status)
-     * Used for checking if email exists before creating a new account
-     */
-    
     public void registerGoogleUser(User user) throws SQLException, ClassNotFoundException {
         String sql = "INSERT INTO Account (full_name, email, roleId, googleID, is_delete, create_date) VALUES (?, ?, ?, ?, 0, GETDATE())";
         try (Connection conn = DBContext.getConnection();
@@ -345,6 +340,7 @@ public class UserDAO {
             
             ps.setInt(paramIndex++, offset);
             ps.setInt(paramIndex++, pageSize);
+            
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     User user = new User();

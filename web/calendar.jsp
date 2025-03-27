@@ -1,3 +1,9 @@
+<%-- 
+    Document   : calendar
+    Created on : Feb 28, 2025, 1:58:20 AM
+    Author     : Lom
+--%>
+
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -42,6 +48,7 @@
                 <p class="text-red-500 italic text-sm">Quý khách vui lòng chọn ngày có chuyến khởi hành</p>
             </div>
         </div>
+
         <script src="https://cdn.tailwindcss.com"></script>
         <script>
             tailwind.config = {
