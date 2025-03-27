@@ -87,9 +87,7 @@
                             </c:when>
                         </c:choose>
                         
-                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteBookingModal">
-                            <i class="fas fa-trash me-1"></i> Delete
-                        </button>
+                       
                     </div>
                 </div>
                 <div class="card-body">
@@ -109,9 +107,7 @@
                                             <th>Status</th>
                                             <td>
                                                 <c:choose>
-                                                    <c:when test="${booking.status eq 'Chờ thanh toán'}">
-                                                        <span class="badge bg-warning">Chờ thanh toán</span>
-                                                    </c:when>
+                                                    
                                                     <c:when test="${booking.status eq 'Đã thanh toán'}">
                                                         <span class="badge bg-primary">Đã thanh toán</span>
                                                     </c:when>
