@@ -1,13 +1,5 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package filter;
 
-/**
- *
- * @author Huy Lee
- */
 import java.io.IOException;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -19,8 +11,11 @@ import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+
+@WebFilter("/*")
 public class AuthenticationFilter implements Filter {
-        @Override
+
+    @Override
     public void init(FilterConfig filterConfig) throws ServletException {
     }
 
@@ -34,13 +29,22 @@ public class AuthenticationFilter implements Filter {
         String requestURI = httpRequest.getRequestURI();
         boolean isLoggedIn = (session != null && session.getAttribute("user") != null);
         boolean isLoginPage = requestURI.endsWith("/login");
+        boolean isRegisterPage = requestURI.endsWith("/register");
+        boolean isProfilePage = requestURI.endsWith("/user-profile");
         
         if (isLoggedIn) {
-            if (isLoginPage) {
-                httpResponse.sendRedirect(httpRequest.getContextPath() + "/");
+            // Nếu đã đăng nhập, không cho phép truy cập trang login và register
+            if (isLoginPage || isRegisterPage) {
+                httpResponse.sendRedirect(httpRequest.getContextPath() + "/home");
                 return;
             }
-        } 
+        } else {
+            // Nếu chưa đăng nhập, không cho phép truy cập trang profile
+            if (isProfilePage) {
+                httpResponse.sendRedirect(httpRequest.getContextPath() + "/login");
+                return;
+            }
+        }
         
         chain.doFilter(request, response);
     }
@@ -48,4 +52,4 @@ public class AuthenticationFilter implements Filter {
     @Override
     public void destroy() {
     }
-}
+} 

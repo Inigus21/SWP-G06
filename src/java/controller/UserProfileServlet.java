@@ -46,7 +46,7 @@ public class UserProfileServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-         request.setCharacterEncoding("UTF-8");
+        request.setCharacterEncoding("UTF-8");
         HttpSession session = request.getSession();
         User sessionUser = (User) session.getAttribute("user");
         
@@ -86,7 +86,7 @@ public class UserProfileServlet extends HttpServlet {
                     String uniqueFileName = System.currentTimeMillis() + "_" + fileName;
                     String filePath = uploadDir + File.separator + uniqueFileName;
                     filePart.write(filePath);
-                    //have not used update avatar
+                    
                     userDAO.updateAvatar(sessionUser.getId(), "uploads/avatars/" + uniqueFileName);
                     session.setAttribute("user", userDAO.getUserById(sessionUser.getId()));
                     request.setAttribute("success", "Cập nhật ảnh đại diện thành công");
@@ -113,7 +113,8 @@ public class UserProfileServlet extends HttpServlet {
             request.getRequestDispatcher("user-profile.jsp").forward(request, response);
         }
     }
-        private String getFileName(Part part) {
+    
+    private String getFileName(Part part) {
         String contentDisp = part.getHeader("content-disposition");
         String[] tokens = contentDisp.split(";");
         for (String token : tokens) {
@@ -123,5 +124,4 @@ public class UserProfileServlet extends HttpServlet {
         }
         return "";
     }
-  
 } 

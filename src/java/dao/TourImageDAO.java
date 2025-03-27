@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package dao;
 
 import java.sql.Connection;
@@ -13,14 +9,10 @@ import java.util.List;
 import model.TourImage;
 import utils.DBContext;
 
-/**
- *
- * @author Tuan
- */
-public class TourImageDAO {
+public class TourImageDAO extends DBContext {
     public List<TourImage> getTourImagesById(int tourId) {
         List<TourImage> images = new ArrayList<>();
-        String sql = "SELECT * FROM tour_images WHERE tour_id = ?";
+        String sql = "SELECT * FROM tour_images WHERE tour_id = ? AND is_delete = 0";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement st = conn.prepareStatement(sql)) {
             st.setInt(1, tourId);
@@ -37,4 +29,44 @@ public class TourImageDAO {
         }
         return images;
     }
-}
+    
+    /**
+     * Add a new image to a tour
+     * @param tourId The tour ID
+     * @param imageUrl The image URL
+     * @return true if successful, false otherwise
+     */
+    public boolean addTourImage(int tourId, String imageUrl) {
+        String sql = "INSERT INTO tour_images (tour_id, image_url, created_date, is_delete) VALUES (?, ?, CURRENT_TIMESTAMP, 0)";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement st = conn.prepareStatement(sql)) {
+            st.setInt(1, tourId);
+            st.setString(2, imageUrl);
+            int rowsAffected = st.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException | ClassNotFoundException e) {
+            System.out.println("Error adding tour image: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    /**
+     * Soft delete a tour image by setting is_delete to 1
+     * @param imageId The image ID to delete
+     * @return true if successful, false otherwise
+     */
+    public boolean deleteTourImage(int imageId) {
+        String sql = "UPDATE tour_images SET is_delete = 1, deleted_date = CURRENT_TIMESTAMP WHERE id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement st = conn.prepareStatement(sql)) {
+            st.setInt(1, imageId);
+            int rowsAffected = st.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException | ClassNotFoundException e) {
+            System.out.println("Error deleting tour image: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+} 
