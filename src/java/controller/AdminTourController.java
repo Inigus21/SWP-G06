@@ -7,17 +7,13 @@ import dao.TourImageDAO;
 import dao.TripDAO;
 import dao.BookingDAO;
 import dao.UserDAO;
-import dao.ReviewDAO;
-import dao.PromotionDAO;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.HashMap;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -33,8 +29,6 @@ import model.TourSchedule;
 import model.Trip;
 import model.User;
 import model.Booking;
-import model.Review;
-import model.Promotion;
 import utils.DBContext;
 
 @WebServlet(name = "AdminTourController", urlPatterns = {"/admin/tours/*"})
@@ -54,76 +48,103 @@ public class AdminTourController extends HttpServlet {
     
     private void processRequest(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        String pathInfo = request.getPathInfo();
         
-        if (pathInfo == null || pathInfo.equals("/")) {
-            // No specific path - show the tours list by default
-            listTours(request, response);
+        HttpSession session = request.getSession();
+        User user = (User) session.getAttribute("user");
+        
+        // Check if user is logged in and is admin (roleId = 2)
+        if (user == null || user.getRoleId() != 2) {
+            response.sendRedirect(request.getContextPath() + "/login.jsp");
             return;
         }
         
-        if (pathInfo.equals("/create")) {
-            // Handle form submission to create a tour if POST or show form if GET
-            if (request.getMethod().equals("POST")) {
-                createTour(request, response);
-            } else {
-                showCreateForm(request, response);
+        String pathInfo = request.getPathInfo();
+        String action = request.getParameter("action");
+        
+        // Handle form submissions with action parameter
+        if (action != null && !action.isEmpty()) {
+            switch (action) {
+                case "create":
+                    createTour(request, response);
+                    return;
+                case "update":
+                    updateTour(request, response);
+                    return;
+                case "delete":
+                    deleteTour(request, response);
+                    return;
+                case "create-schedule":
+                    createSchedule(request, response);
+                    return;
+                case "update-schedule":
+                    updateSchedule(request, response);
+                    return;
+                case "delete-schedule":
+                    deleteSchedule(request, response);
+                    return;
+                case "get-schedule":
+                    getSchedule(request, response);
+                    return;
+                case "create-trip":
+                    createTrip(request, response);
+                    return;
+                case "update-trip":
+                    updateTrip(request, response);
+                    return;
+                case "delete-trip":
+                    deleteTrip(request, response);
+                    return;
+                case "check-trip-bookings":
+                    checkTripBookings(request, response);
+                    return;
+                case "check-tour-bookings":
+                    checkTourBookings(request, response);
+                    return;
+                case "addImage":
+                    addTourImage(request, response);
+                    return;
+                case "deleteImage":
+                    deleteTourImage(request, response);
+                    return;
+                case "getCities":
+                    getCities(request, response);
+                    return;
             }
-        } else if (pathInfo.equals("/cities/list")) {
-            // Add a new endpoint to handle city list requests for the trip modals
-            listCitiesAsJson(request, response);
+        }
+        
+        // Handle URL path-based navigation
+        if (pathInfo == null || pathInfo.equals("/")) {
+            // Main tour listing
+            listTours(request, response);
+        } else if (pathInfo.equals("/create")) {
+            showCreateForm(request, response);
         } else if (pathInfo.equals("/edit")) {
             showEditForm(request, response);
-        } else if (pathInfo.equals("/update")) {
-            // Handle form submission to update a tour
-            updateTour(request, response);
         } else if (pathInfo.equals("/view")) {
             viewTour(request, response);
-        } else if (pathInfo.equals("/delete")) {
-            deleteTour(request, response);
-        } else if (pathInfo.equals("/edit-content")) {
-            loadTourEditContent(request, response);
         } else if (pathInfo.equals("/trips")) {
             viewTourTrips(request, response);
-        } else if (pathInfo.equals("/trips/create")) {
-            // Enable trip creation
-            createTrip(request, response);
-        } else if (pathInfo.equals("/trips/edit")) {
-            // Enable trip editing
-            updateTrip(request, response);
-        } else if (pathInfo.equals("/trips/delete")) {
-            deleteTrip(request, response);
-        } else if (pathInfo.equals("/schedule")) {
+        } else if (pathInfo.equals("/schedules")) {
             viewTourSchedules(request, response);
-        } else if (pathInfo.equals("/schedule/create")) {
-            createSchedule(request, response);
-        } else if (pathInfo.equals("/schedule/edit")) {
-            updateSchedule(request, response);
-        } else if (pathInfo.equals("/schedule/delete")) {
-            deleteSchedule(request, response);
-        } else if (pathInfo.equals("/schedule/get")) {
-            getSchedule(request, response);
-        } else if (pathInfo.equals("/check-trip-bookings")) {
-            checkTripBookings(request, response);
-        } else if (pathInfo.equals("/check-tour-bookings")) {
-            checkTourBookings(request, response);
-        } else if (pathInfo.equals("/trips/content")) {
+        } else if (pathInfo.equals("/edit-content")) {
+            loadTourEditContent(request, response);
+        } else if (pathInfo.equals("/trips-content")) {
             loadTripsContent(request, response);
-        } else if (pathInfo.equals("/schedules/content")) {
+        } else if (pathInfo.equals("/schedules-content")) {
             loadSchedulesContent(request, response);
+        } else if (pathInfo.equals("/cities")) {
+            getCities(request, response);
         } else if (pathInfo.equals("/addImage")) {
             addTourImage(request, response);
         } else if (pathInfo.equals("/deleteImage")) {
             deleteTourImage(request, response);
-        } else if (pathInfo.equals("/trips/bookings")) {
+        } else if (pathInfo.equals("/delete")) {
+            deleteTour(request, response);
+        } else if (pathInfo.equals("/trip-bookings")) {
             getTripBookings(request, response);
-        } else if (pathInfo.equals("/link-promotion")) {
-            linkPromotionToTour(request, response);
-        } else if (pathInfo.equals("/unlink-promotion")) {
-            unlinkPromotionFromTour(request, response);
         } else {
-            System.out.println("Unknown path: " + pathInfo);
-            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            // Default to listing all tours
+            listTours(request, response);
         }
     }
     
@@ -183,81 +204,18 @@ public class AdminTourController extends HttpServlet {
     
     private void viewTour(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        System.out.println("\n===== viewTour method called =====");
-        
         try {
-            // Get and validate the tour ID parameter
-            int tourId = 0;
-            
-            // First try to get ID from request attribute (set by createTour method)
-            Object idAttribute = request.getAttribute("id");
-            if (idAttribute != null) {
-                if (idAttribute instanceof Integer) {
-                    tourId = (Integer) idAttribute;
-                } else if (idAttribute instanceof String) {
-                    tourId = Integer.parseInt((String) idAttribute);
-                }
-                System.out.println("ID attribute received: " + tourId);
-            }
-            
-            // If ID not found in attribute, try request parameter (from URL)
-            if (tourId <= 0) {
-                String idParam = request.getParameter("id");
-                System.out.println("ID parameter received: " + idParam);
-                
-                if (idParam == null || idParam.trim().isEmpty()) {
-                    System.out.println("Error: ID parameter is missing or empty and no ID attribute found");
-                    request.setAttribute("errorMessage", "Tour ID is required");
-                    request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
-                    return;
-                }
-                
-                try {
-                    tourId = Integer.parseInt(idParam);
-                } catch (NumberFormatException e) {
-                    System.out.println("Error: Invalid ID format: " + idParam);
-                    request.setAttribute("errorMessage", "Invalid tour ID format");
-                    request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
-                    return;
-                }
-            }
-            
-            System.out.println("Using tour ID: " + tourId);
-            
-            if (tourId <= 0) {
-                System.out.println("Error: Tour ID must be a positive number");
-                request.setAttribute("errorMessage", "Invalid tour ID: must be positive");
-                request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
-                return;
-            }
-            
+            int tourId = Integer.parseInt(request.getParameter("id"));
             TourDAO tourDAO = new TourDAO();
             TourImageDAO tourImageDAO = new TourImageDAO();
             TripDAO tripDAO = new TripDAO();
             BookingDAO bookingDAO = new BookingDAO();
-            ReviewDAO reviewDAO = new ReviewDAO();
-            PromotionDAO promotionDAO = new PromotionDAO();
-            CityDAO cityDAO = new CityDAO();
             
-            System.out.println("Fetching tour with ID: " + tourId);
             Tour tour = tourDAO.getTourById(tourId);
-            
             if (tour == null) {
-                System.out.println("Error: Tour not found with ID " + tourId);
                 request.setAttribute("errorMessage", "Tour not found with ID: " + tourId);
                 request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
                 return;
-            }
-            
-            System.out.println("Tour found: " + tour.getName() + " (ID: " + tour.getId() + ")");
-            
-            // If departure city is not set in the tour, fetch it directly
-            if (tour.getDepartureCity() == null || tour.getDepartureCity().isEmpty()) {
-                City departureCity = cityDAO.getCityById(tour.getDepartureLocationId());
-                if (departureCity != null) {
-                    tour.setDepartureCity(departureCity.getName());
-                    System.out.println("Set departure city: " + departureCity.getName());
-                }
             }
             
             List<TourImage> images = tourImageDAO.getTourImagesById(tourId);
@@ -296,51 +254,17 @@ public class AdminTourController extends HttpServlet {
                 booking.setUser(usersMap.get(booking.getAccountId()));
             }
             
-            // Get reviews for this tour
-            List<Review> tourReviews = reviewDAO.getReviewsByTour(tourId);
-            
-            // Get the average rating
-            double avgRating = reviewDAO.getAverageRatingForTour(tourId);
-            
-            // Get promotions linked to this tour
-            List<Promotion> tourPromotions = promotionDAO.getPromotionsForTour(tourId);
-            
-            // Get available promotions (all active ones that are not already linked)
-            List<Promotion> allActivePromotions = promotionDAO.getActivePromotions();
-            List<Promotion> availablePromotions = new ArrayList<>();
-            
-            // Filter out promotions that are already linked to this tour
-            Set<Integer> linkedPromotionIds = new HashSet<>();
-            for (Promotion p : tourPromotions) {
-                linkedPromotionIds.add(p.getId());
-            }
-            
-            for (Promotion p : allActivePromotions) {
-                if (!linkedPromotionIds.contains(p.getId())) {
-                    availablePromotions.add(p);
-                }
-            }
-            
             request.setAttribute("tour", tour);
             request.setAttribute("tourImages", images);
             request.setAttribute("tourSchedules", schedules);
             request.setAttribute("upcomingTrips", upcomingTrips);
             request.setAttribute("tourBookings", tourBookings);
-            request.setAttribute("tourReviews", tourReviews);
-            request.setAttribute("avgRating", avgRating);
-            request.setAttribute("tourPromotions", tourPromotions);
-            request.setAttribute("availablePromotions", availablePromotions);
             
-            System.out.println("All tour data prepared, forwarding to tour-detail.jsp");
             request.getRequestDispatcher("/admin/tour-detail.jsp").forward(request, response);
-            System.out.println("Forwarded to tour-detail.jsp successfully\n=================================");
         } catch (NumberFormatException e) {
-            System.err.println("Error in viewTour: Invalid tour ID format: " + e.getMessage());
             request.setAttribute("errorMessage", "Invalid tour ID");
             request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
         } catch (Exception e) {
-            System.err.println("Error in viewTour: " + e.getMessage());
-            e.printStackTrace();
             request.setAttribute("errorMessage", "Error loading tour: " + e.getMessage());
             request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
         }
@@ -398,98 +322,18 @@ public class AdminTourController extends HttpServlet {
         try {
             // Get form parameters
             String name = request.getParameter("name");
-            name = (name != null) ? name.trim() : null;
-            // Validate that name is not just spaces
-            if (name == null || name.isEmpty()) {
-                throw new Exception("Tour name cannot be empty or contain only spaces");
-            }
-            
-            String region = request.getParameter("region");
-            region = (region != null) ? region.trim() : null;
-            // Validate region is one of the allowed values
-            if (region == null || (!region.equals("Bắc") && !region.equals("Trung") && !region.equals("Nam"))) {
-                throw new Exception("Region must be one of: Bắc, Trung, Nam");
-            }
-            
             String img = request.getParameter("img");
-            img = (img != null) ? img.trim() : null;
-            
-            double priceAdult = 0;
-            try {
-                priceAdult = Double.parseDouble(request.getParameter("priceAdult"));
-                if (priceAdult < 0) {
-                    throw new Exception("Price for adults cannot be negative");
-                }
-            } catch (NumberFormatException e) {
-                throw new Exception("Invalid adult price format");
-            }
-            
-            double priceChildren = 0;
-            try {
-                priceChildren = Double.parseDouble(request.getParameter("priceChildren"));
-                if (priceChildren < 0) {
-                    throw new Exception("Price for children cannot be negative");
-                }
-            } catch (NumberFormatException e) {
-                throw new Exception("Invalid children price format");
-            }
-            
+            double priceAdult = Double.parseDouble(request.getParameter("priceAdult"));
+            double priceChildren = Double.parseDouble(request.getParameter("priceChildren"));
             String duration = request.getParameter("duration");
-            duration = (duration != null) ? duration.trim() : null;
-            if (duration == null || duration.isEmpty()) {
-                throw new Exception("Duration cannot be empty");
-            }
-            
             int departureLocationId = Integer.parseInt(request.getParameter("departureLocationId"));
-            
             String suitableFor = request.getParameter("suitableFor");
-            suitableFor = (suitableFor != null) ? suitableFor.trim() : null;
-            if (suitableFor == null || suitableFor.isEmpty()) {
-                throw new Exception("Suitable For field cannot be empty");
-            }
-            
             String bestTime = request.getParameter("bestTime");
-            bestTime = (bestTime != null) ? bestTime.trim() : null;
-            if (bestTime == null || bestTime.isEmpty()) {
-                throw new Exception("Best Time field cannot be empty");
-            }
-            
             String cuisine = request.getParameter("cuisine");
-            cuisine = (cuisine != null) ? cuisine.trim() : null;
-            if (cuisine == null || cuisine.isEmpty()) {
-                throw new Exception("Cuisine field cannot be empty");
-            }
-            
+            String region = request.getParameter("region");
             String sightseeing = request.getParameter("sightseeing");
-            sightseeing = (sightseeing != null) ? sightseeing.trim() : null;
-            // Validate that sightseeing is not just spaces
-            if (sightseeing == null || sightseeing.isEmpty()) {
-                throw new Exception("Sightseeing information cannot be empty or contain only spaces");
-            }
-            
-            int maxCapacity = 0;
-            try {
-                maxCapacity = Integer.parseInt(request.getParameter("maxCapacity"));
-                if (maxCapacity <= 0) {
-                    throw new Exception("Max capacity must be greater than 0");
-                }
-            } catch (NumberFormatException e) {
-                throw new Exception("Invalid max capacity format");
-            }
-            
+            int maxCapacity = Integer.parseInt(request.getParameter("maxCapacity"));
             int categoryId = Integer.parseInt(request.getParameter("categoryId"));
-            
-            // Debug: Log form parameters
-            System.out.println("\n===== Create Tour Parameters =====");
-            System.out.println("Name: " + name);
-            System.out.println("Region: " + region);
-            System.out.println("Price Adult: " + priceAdult);
-            System.out.println("Price Children: " + priceChildren);
-            System.out.println("Duration: " + duration);
-            System.out.println("Departure Location ID: " + departureLocationId);
-            System.out.println("Category ID: " + categoryId);
-            System.out.println("Max Capacity: " + maxCapacity);
-            System.out.println("=================================\n");
             
             // Create Tour object
             Tour tour = new Tour();
@@ -509,56 +353,14 @@ public class AdminTourController extends HttpServlet {
             
             // Add tour to database
             TourDAO tourDAO = new TourDAO();
-            System.out.println("Calling tourDAO.createTour() method...");
             int tourId = tourDAO.createTour(tour);
-            System.out.println("tourDAO.createTour() returned ID: " + tourId);
             
             if (tourId > 0) {
                 // Success message
-                System.out.println("Tour created successfully with ID: " + tourId);
                 request.getSession().setAttribute("successMessage", "Tour created successfully!");
-                
-                // Get the newly created tour from the database to ensure we have complete data
-                Tour createdTour = tourDAO.getTourById(tourId);
-                if (createdTour != null) {
-                    System.out.println("Successfully retrieved created tour: " + createdTour.getName());
-                    
-                    // Use forward approach instead of redirect for more reliable handling
-                    System.out.println("Using forward approach to display tour details");
-                    request.setAttribute("id", tourId);
-                    viewTour(request, response);
-                } else {
-                    System.err.println("Error: Created tour with ID " + tourId + " could not be retrieved");
-                    request.setAttribute("errorMessage", "Tour created but could not be displayed. Please check the tours list.");
-                    listTours(request, response);
-                }
+                // Redirect to tour details page
+                response.sendRedirect(request.getContextPath() + "/admin/tours/view?id=" + tourId);
             } else {
-                // Try to find the tour by name as fallback if ID is 0
-                System.out.println("Tour creation returned ID 0, attempting to find by name...");
-                
-                try {
-                    // Search for the tour by name
-                    String tourName = tour.getName();
-                    List<Tour> tours = tourDAO.searchToursByName(tourName);
-                    
-                    if (tours != null && !tours.isEmpty()) {
-                        // Take the first one that matches (most likely the one we just created)
-                        Tour foundTour = tours.get(0);
-                        int foundTourId = foundTour.getId();
-                        
-                        System.out.println("Found tour by name with ID: " + foundTourId);
-                        request.getSession().setAttribute("successMessage", "Tour created successfully!");
-                        
-                        // Use the found ID for viewing the tour
-                        request.setAttribute("id", foundTourId);
-                        viewTour(request, response);
-                        return;
-                    }
-                } catch (Exception e) {
-                    System.err.println("Error searching for tour by name: " + e.getMessage());
-                }
-                
-                System.out.println("Tour creation failed: tourId = " + tourId);
                 request.setAttribute("errorMessage", "Failed to create tour. Please try again.");
                 showCreateForm(request, response);
             }
@@ -586,35 +388,9 @@ public class AdminTourController extends HttpServlet {
             while (paramNames.hasMoreElements()) {
                 String paramName = paramNames.nextElement();
                 String paramValue = request.getParameter(paramName);
-                System.out.println(paramName + ": [" + paramValue + "] (length: " + (paramValue != null ? paramValue.length() : 0) + ")");
+                System.out.println(paramName + ": " + paramValue);
             }
             System.out.println("=================================\n");
-            
-            // Convert request parameters to a map for easier access and logging
-            Map<String, String> params = new HashMap<>();
-            java.util.Enumeration<String> names = request.getParameterNames();
-            while (names.hasMoreElements()) {
-                String name = names.nextElement();
-                String value = request.getParameter(name);
-                params.put(name, value);
-            }
-            
-            // Log specific important parameters
-            System.out.println("FORM DATA DETAILS:");
-            System.out.println("ID: " + params.getOrDefault("id", "N/A"));
-            System.out.println("Name: " + params.getOrDefault("name", "N/A"));
-            System.out.println("Region: " + params.getOrDefault("region", "N/A"));
-            System.out.println("Price Adult: " + params.getOrDefault("priceAdult", "N/A"));
-            System.out.println("Price Children: " + params.getOrDefault("priceChildren", "N/A"));
-            System.out.println("Duration: " + params.getOrDefault("duration", "N/A"));
-            System.out.println("Departure Location ID: " + params.getOrDefault("departureLocationId", "N/A"));
-            System.out.println("Category ID: " + params.getOrDefault("categoryId", "N/A"));
-            System.out.println("Max Capacity: " + params.getOrDefault("maxCapacity", "N/A"));
-            System.out.println("Suitable For: " + params.getOrDefault("suitableFor", "N/A"));
-            System.out.println("Best Time: " + params.getOrDefault("bestTime", "N/A"));
-            System.out.println("Cuisine: " + params.getOrDefault("cuisine", "N/A"));
-            System.out.println("Sightseeing: " + params.getOrDefault("sightseeing", "N/A"));
-            System.out.println("Action: " + params.getOrDefault("action", "N/A"));
             
             // Get form parameters
             String idParam = request.getParameter("id");
@@ -629,113 +405,45 @@ public class AdminTourController extends HttpServlet {
                 throw new Exception("Invalid tour ID format: " + idParam);
             }
             
-            // Get existing tour to preserve any values not in the form
-            TourDAO tourDAO = new TourDAO();
-            Tour existingTour = tourDAO.getTourById(tourId);
-            
-            if (existingTour == null) {
-                throw new Exception("Tour not found with ID: " + tourId);
-            }
-            
-            // Read form parameters with validation
             String name = request.getParameter("name");
-            name = (name != null) ? name.trim() : null;
-            if (name == null || name.isEmpty()) {
-                throw new Exception("Tour name cannot be empty or contain only spaces");
+            if (name == null || name.trim().isEmpty()) {
+                throw new Exception("Tour name cannot be empty");
             }
             
             String img = request.getParameter("img");
-            img = (img != null) ? img.trim() : null;
-            
             String region = request.getParameter("region");
-            region = (region != null) ? region.trim() : null;
-            if (region == null || region.isEmpty()) {
-                // If region is missing in the form, use the existing one
-                region = existingTour.getRegion();
-                if (region == null || region.isEmpty()) {
-                    throw new Exception("Tour region cannot be empty");
-                }
-            } else if (!region.equals("Bắc") && !region.equals("Trung") && !region.equals("Nam")) {
-                throw new Exception("Region must be one of: Bắc, Trung, Nam");
-            }
-            
             String duration = request.getParameter("duration");
-            duration = (duration != null) ? duration.trim() : null;
-            if (duration == null || duration.isEmpty()) {
-                duration = existingTour.getDuration(); // Use existing value if missing
-                if (duration == null || duration.isEmpty()) {
-                    throw new Exception("Duration cannot be empty");
-                }
-            }
-            
             String suitableFor = request.getParameter("suitableFor");
-            suitableFor = (suitableFor != null) ? suitableFor.trim() : null;
-            if (suitableFor == null || suitableFor.isEmpty()) {
-                suitableFor = existingTour.getSuitableFor();
-                if (suitableFor == null || suitableFor.isEmpty()) {
-                    throw new Exception("Suitable For field cannot be empty");
-                }
-            }
-            
             String bestTime = request.getParameter("bestTime");
-            bestTime = (bestTime != null) ? bestTime.trim() : null;
-            if (bestTime == null || bestTime.isEmpty()) {
-                bestTime = existingTour.getBestTime();
-                if (bestTime == null || bestTime.isEmpty()) {
-                    throw new Exception("Best Time field cannot be empty");
-                }
-            }
-            
             String cuisine = request.getParameter("cuisine");
-            cuisine = (cuisine != null) ? cuisine.trim() : null;
-            if (cuisine == null || cuisine.isEmpty()) {
-                cuisine = existingTour.getCuisine();
-            }
-            
             String sightseeing = request.getParameter("sightseeing");
-            sightseeing = (sightseeing != null) ? sightseeing.trim() : null;
-            if (sightseeing == null || sightseeing.isEmpty()) {
-                sightseeing = existingTour.getSightseeing();
-                if (sightseeing == null || sightseeing.isEmpty()) {
-                    throw new Exception("Sightseeing information cannot be empty or contain only spaces");
-                }
-            }
             
-            // Parse numeric values
-            double priceAdult = 0.0;
+            // Debug output
+            System.out.println("Updating tour #" + tourId);
+            System.out.println("Name: " + name);
+            System.out.println("Region: " + region);
+            
+            // Parse numeric values with default fallbacks
+            double priceAdult = 0;
             try {
                 String priceAdultStr = request.getParameter("priceAdult");
                 if (priceAdultStr != null && !priceAdultStr.trim().isEmpty()) {
                     priceAdult = Double.parseDouble(priceAdultStr);
-                    if (priceAdult < 0) {
-                        throw new Exception("Price for adults cannot be negative");
-                    }
-                } else {
-                    // If missing in the form, use existing value
-                    priceAdult = existingTour.getPriceAdult();
                 }
-            } catch (NumberFormatException e) {
-                // If parsing fails, use existing value
-                priceAdult = existingTour.getPriceAdult();
-                System.out.println("Using existing price for adults: " + priceAdult);
+            } catch (Exception e) {
+                System.out.println("Error parsing priceAdult: " + e.getMessage());
+                // Use default
             }
             
-            double priceChildren = 0.0;
+            double priceChildren = 0;
             try {
                 String priceChildrenStr = request.getParameter("priceChildren");
                 if (priceChildrenStr != null && !priceChildrenStr.trim().isEmpty()) {
                     priceChildren = Double.parseDouble(priceChildrenStr);
-                    if (priceChildren < 0) {
-                        throw new Exception("Price for children cannot be negative");
-                    }
-                } else {
-                    // If missing in the form, use existing value
-                    priceChildren = existingTour.getPriceChildren();
                 }
-            } catch (NumberFormatException e) {
-                // If parsing fails, use existing value
-                priceChildren = existingTour.getPriceChildren();
-                System.out.println("Using existing price for children: " + priceChildren);
+            } catch (Exception e) {
+                System.out.println("Error parsing priceChildren: " + e.getMessage());
+                // Use default
             }
             
             int departureLocationId = 0;
@@ -743,17 +451,10 @@ public class AdminTourController extends HttpServlet {
                 String departureLocationIdStr = request.getParameter("departureLocationId");
                 if (departureLocationIdStr != null && !departureLocationIdStr.trim().isEmpty()) {
                     departureLocationId = Integer.parseInt(departureLocationIdStr);
-                    if (departureLocationId <= 0) {
-                        // Use existing value if invalid
-                        departureLocationId = existingTour.getDepartureLocationId();
-                        System.out.println("Using existing departure location ID: " + departureLocationId);
-                    }
-                } else {
-                    departureLocationId = existingTour.getDepartureLocationId();
                 }
-            } catch (NumberFormatException e) {
-                departureLocationId = existingTour.getDepartureLocationId();
-                System.out.println("Using existing departure location ID: " + departureLocationId);
+            } catch (Exception e) {
+                System.out.println("Error parsing departureLocationId: " + e.getMessage());
+                // Use default
             }
             
             int maxCapacity = 0;
@@ -761,31 +462,10 @@ public class AdminTourController extends HttpServlet {
                 String maxCapacityStr = request.getParameter("maxCapacity");
                 if (maxCapacityStr != null && !maxCapacityStr.trim().isEmpty()) {
                     maxCapacity = Integer.parseInt(maxCapacityStr);
-                    if (maxCapacity <= 0) {
-                        throw new Exception("Max capacity must be greater than 0");
-                    }
-                } else {
-                    maxCapacity = existingTour.getMaxCapacity();
                 }
-            } catch (NumberFormatException e) {
-                maxCapacity = existingTour.getMaxCapacity();
-                System.out.println("Using existing max capacity: " + maxCapacity);
-            }
-            
-            int availableSlot = 0;
-            try {
-                String availableSlotStr = request.getParameter("availableSlot");
-                if (availableSlotStr != null && !availableSlotStr.trim().isEmpty()) {
-                    availableSlot = Integer.parseInt(availableSlotStr);
-                    if (availableSlot < 0) {
-                        throw new Exception("Available slots cannot be negative");
-                    }
-                } else {
-                    availableSlot = existingTour.getAvailableSlot();
-                }
-            } catch (NumberFormatException e) {
-                availableSlot = existingTour.getAvailableSlot();
-                System.out.println("Using existing available slots: " + availableSlot);
+            } catch (Exception e) {
+                System.out.println("Error parsing maxCapacity: " + e.getMessage());
+                // Use default
             }
             
             int categoryId = 1; // Default category ID
@@ -793,16 +473,18 @@ public class AdminTourController extends HttpServlet {
                 String categoryIdStr = request.getParameter("categoryId");
                 if (categoryIdStr != null && !categoryIdStr.trim().isEmpty()) {
                     categoryId = Integer.parseInt(categoryIdStr);
-                    if (categoryId <= 0) {
-                        categoryId = existingTour.getCategoryId();
-                        System.out.println("Using existing category ID: " + categoryId);
-                    }
-                } else {
-                    categoryId = existingTour.getCategoryId();
                 }
-            } catch (NumberFormatException e) {
-                categoryId = existingTour.getCategoryId();
-                System.out.println("Using existing category ID: " + categoryId);
+            } catch (Exception e) {
+                System.out.println("Error parsing categoryId: " + e.getMessage());
+                // Use default
+            }
+            
+            // Get existing tour to preserve any values not in the form
+            TourDAO tourDAO = new TourDAO();
+            Tour existingTour = tourDAO.getTourById(tourId);
+            
+            if (existingTour == null) {
+                throw new Exception("Tour not found with ID: " + tourId);
             }
             
             // Create Tour object and copy values from the form
@@ -823,7 +505,7 @@ public class AdminTourController extends HttpServlet {
             tour.setCategoryId(categoryId);
             
             // Copy other values that aren't in the form from the existing tour
-            tour.setAvailableSlot(availableSlot);
+            tour.setAvailableSlot(existingTour.getAvailableSlot());
             tour.setDestinationCity(existingTour.getDestinationCity());
             tour.setDiscountPercentage(existingTour.getDiscountPercentage());
             tour.setDepartureCity(existingTour.getDepartureCity());
@@ -831,14 +513,12 @@ public class AdminTourController extends HttpServlet {
             // Debug: Print Tour object before update
             System.out.println("\n===== Tour Object Before Update =====");
             System.out.println("ID: " + tour.getId());
-            System.out.println("Name: " + tour.getName() + " (length: " + (tour.getName() != null ? tour.getName().length() : 0) + ")");
-            System.out.println("Region: " + tour.getRegion() + " (length: " + (tour.getRegion() != null ? tour.getRegion().length() : 0) + ")");
+            System.out.println("Name: " + tour.getName());
             System.out.println("Price Adult: " + tour.getPriceAdult());
             System.out.println("Price Children: " + tour.getPriceChildren());
             System.out.println("Duration: " + tour.getDuration());
             System.out.println("Departure Location ID: " + tour.getDepartureLocationId());
             System.out.println("Category ID: " + tour.getCategoryId());
-            System.out.println("Max Capacity: " + tour.getMaxCapacity());
             System.out.println("===================================\n");
             
             // Process category IDs if present
@@ -851,17 +531,6 @@ public class AdminTourController extends HttpServlet {
             // Update tour in database - note that this method is void and does not return a value
             try {
                 System.out.println("Calling tourDAO.updateTour()...");
-                System.out.println("Detailed Tour object being sent to DAO:");
-                System.out.println("ID: " + tour.getId());
-                System.out.println("Name: " + tour.getName() + " (length: " + (tour.getName() != null ? tour.getName().length() : 0) + ")");
-                System.out.println("Region: " + tour.getRegion() + " (length: " + (tour.getRegion() != null ? tour.getRegion().length() : 0) + ")");
-                System.out.println("Price Adult: " + tour.getPriceAdult());
-                System.out.println("Price Children: " + tour.getPriceChildren());
-                System.out.println("Duration: " + tour.getDuration());
-                System.out.println("Departure Location ID: " + tour.getDepartureLocationId());
-                System.out.println("Category ID: " + tour.getCategoryId());
-                System.out.println("Max Capacity: " + tour.getMaxCapacity());
-                
                 tourDAO.updateTour(tour);
                 System.out.println("Tour update successful.");
                 
@@ -886,112 +555,90 @@ public class AdminTourController extends HttpServlet {
                         response.sendRedirect(request.getContextPath() + "/admin/tours/view?id=" + tourId);
                     }
                 }
-            } catch (Exception e) {
-                System.err.println("Error updating tour: " + e.getMessage());
+            } catch (SQLException e) {
+                System.err.println("SQL Error in updateTour: " + e.getMessage());
                 e.printStackTrace();
                 
+                // Check for specific SQL error codes
+                if (e.getErrorCode() == 1) {
+                    System.err.println("SQL Error Code 1: Possible primary key violation");
+                } else if (e.getErrorCode() == 1062) {
+                    System.err.println("SQL Error Code 1062: Duplicate entry");
+                }
+                
+                // Check if it's an AJAX request
                 if (request.getHeader("X-Requested-With") != null) {
-                    // AJAX request
-                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                    response.getWriter().write("Error: " + e.getMessage());
+                    response.getWriter().write("SQL error: " + e.getMessage());
                 } else {
-                    // Regular form submission
-                    HttpSession session = request.getSession();
-                    session.setAttribute("errorMessage", "Error updating tour: " + e.getMessage());
-                    response.sendRedirect(request.getContextPath() + "/admin/tours/edit?id=" + tourId);
+                    request.setAttribute("errorMessage", "SQL Error updating tour: " + e.getMessage());
+                    request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+                }
+            } catch (Exception e) {
+                System.err.println("Error in updateTour database operation: " + e.getMessage());
+                e.printStackTrace();
+                
+                Throwable rootCause = e;
+                while (rootCause.getCause() != null) {
+                    rootCause = rootCause.getCause();
+                }
+                System.err.println("Root cause: " + rootCause.getMessage());
+                
+                // Check if it's an AJAX request
+                if (request.getHeader("X-Requested-With") != null) {
+                    response.getWriter().write("error: " + e.getMessage());
+                } else {
+                    request.setAttribute("errorMessage", "Error updating tour: " + e.getMessage());
+                    request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
                 }
             }
         } catch (Exception e) {
-            System.err.println("Error in updateTour: " + e.getMessage());
+            System.err.println("General error in updateTour: " + e.getMessage());
             e.printStackTrace();
             
+            Throwable rootCause = e;
+            while (rootCause.getCause() != null) {
+                rootCause = rootCause.getCause();
+            }
+            System.err.println("Root cause: " + rootCause.getMessage());
+            
+            // Check if it's an AJAX request
             if (request.getHeader("X-Requested-With") != null) {
-                // AJAX request
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                response.getWriter().write("Error: " + e.getMessage());
+                response.getWriter().write("error: " + e.getMessage());
             } else {
-                // Regular form submission
-                HttpSession session = request.getSession();
-                session.setAttribute("errorMessage", "Error: " + e.getMessage());
-                // Try to redirect back to the form if possible
-                String idParam = request.getParameter("id");
-                if (idParam != null && !idParam.trim().isEmpty()) {
-                    response.sendRedirect(request.getContextPath() + "/admin/tours/edit?id=" + idParam);
-                } else {
-                    response.sendRedirect(request.getContextPath() + "/admin/tours");
-                }
+                request.setAttribute("errorMessage", "Error updating tour: " + e.getMessage());
+                request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
             }
         }
     }
     
     private void deleteTour(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession();
         try {
-            String idParam = request.getParameter("id");
-            if (idParam == null || idParam.trim().isEmpty()) {
-                throw new Exception("Invalid tour ID: Empty or null value");
-            }
-            
-            int tourId;
-            try {
-                tourId = Integer.parseInt(idParam);
-            } catch (NumberFormatException e) {
-                throw new Exception("Invalid tour ID format: " + idParam);
-            }
-            
-            // Check if tour has any bookings before deleting
+            int tourId = Integer.parseInt(request.getParameter("id"));
             TourDAO tourDAO = new TourDAO();
+            
+            // Check if there are bookings for this tour before deleting
             BookingDAO bookingDAO = new BookingDAO();
-            TripDAO tripDAO = new TripDAO();
-            
-            // Get trip count for diagnostic purposes
-            int tripCount = tripDAO.getTripCountByTourId(tourId);
-            System.out.println("Tour #" + tourId + " has " + tripCount + " trips (including deleted ones)");
-            
             if (bookingDAO.tourHasBookings(tourId)) {
-                System.out.println("Cannot delete tour #" + tourId + " as it has associated active bookings");
-                session.setAttribute("errorMessage", "Cannot delete tour as it has associated bookings");
-                response.sendRedirect(request.getContextPath() + "/admin/tours");
-                return;
-            }
-            
-            // No bookings, proceed with deletion
-            System.out.println("Attempting to delete tour #" + tourId + " with " + tripCount + " trips");
-            boolean deleted = tourDAO.softDeleteTour(tourId);
-            
-            // Check if deletion was successful
-            if (deleted) {
-                session.setAttribute("successMessage", "Tour and all its trips deleted successfully");
-                System.out.println("Tour #" + tourId + " and all its trips deleted successfully");
+                // Set error message in session
+                request.getSession().setAttribute("errorMessage", 
+                    "Tour cannot be deleted as it has associated bookings. Please contact support if you need assistance.");
             } else {
-                session.setAttribute("errorMessage", "Failed to delete tour. Please check for related data (feedback, reviews, etc.) that may need to be deleted first.");
-                System.out.println("Failed to delete tour #" + tourId);
-            }
-            
-            // Redirect back to tours list
-            response.sendRedirect(request.getContextPath() + "/admin/tours");
-        } catch (SQLException e) {
-            System.err.println("SQL Error in deleteTour: " + e.getMessage());
-            e.printStackTrace();
-            
-            // Provide more helpful error message for foreign key constraints
-            String errorMessage = "Database error while deleting tour";
-            if (e.getMessage().contains("REFERENCE constraint")) {
-                errorMessage = "Cannot delete tour because it has related data. Please contact your administrator.";
-                if (e.getMessage().contains("FK_feedback_review")) {
-                    errorMessage = "Cannot delete tour because it has related feedback. Contact your administrator.";
-                } else if (e.getMessage().contains("FK_review_tour")) {
-                    errorMessage = "Cannot delete tour because it has related reviews. Contact your administrator.";
+                // Attempt to soft delete the tour
+                boolean deleted = tourDAO.softDeleteTour(tourId);
+                if (deleted) {
+                    request.getSession().setAttribute("successMessage", "Tour has been successfully deleted.");
+                } else {
+                    request.getSession().setAttribute("errorMessage", "Unable to delete tour. Please try again.");
                 }
             }
             
-            session.setAttribute("errorMessage", errorMessage);
+            response.sendRedirect(request.getContextPath() + "/admin/tours");
+        } catch (NumberFormatException e) {
+            request.getSession().setAttribute("errorMessage", "Invalid tour ID.");
             response.sendRedirect(request.getContextPath() + "/admin/tours");
         } catch (Exception e) {
-            System.err.println("Error in deleteTour: " + e.getMessage());
-            e.printStackTrace();
-            session.setAttribute("errorMessage", "Error deleting tour: " + e.getMessage());
+            request.getSession().setAttribute("errorMessage", "Error deleting tour: " + e.getMessage());
             response.sendRedirect(request.getContextPath() + "/admin/tours");
         }
     }
@@ -999,53 +646,38 @@ public class AdminTourController extends HttpServlet {
     private void viewTourTrips(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
+            // Get the tour id from the request parameter
             int tourId = Integer.parseInt(request.getParameter("id"));
             
+            // Get tour details
             TourDAO tourDAO = new TourDAO();
-            TripDAO tripDAO = new TripDAO();
-            BookingDAO bookingDAO = new BookingDAO();
-            UserDAO userDAO = new UserDAO();
-            CityDAO cityDAO = new CityDAO();
-            
-            // Fetch the tour
             Tour tour = tourDAO.getTourById(tourId);
-            if (tour == null) {
-                throw new Exception("Tour not found with ID: " + tourId);
-            }
             
-            // Fetch the departure city
+            // Get departure city
+            CityDAO cityDAO = new CityDAO();
             City departureCity = cityDAO.getCityById(tour.getDepartureLocationId());
             
-            // If departure city name is not set in the tour, set it now
-            if (tour.getDepartureCity() == null || tour.getDepartureCity().isEmpty()) {
-                if (departureCity != null) {
-                    tour.setDepartureCity(departureCity.getName());
-                }
-            }
-            
-            // Fetch all cities for dropdowns
-            List<City> allCities = cityDAO.getAllCities();
-            
-            // Get all trips for this tour
+            // Get trips
+            TripDAO tripDAO = new TripDAO();
             List<Trip> trips = tripDAO.getTripsByTourId(tourId);
             
-            // Check which trips have bookings
+            // Get bookings for this tour
+            BookingDAO bookingDAO = new BookingDAO();
+            List<Booking> tourBookings = bookingDAO.getBookingsByTourId(tourId);
+            
+            // Create a map to track which trips have bookings
             Map<Integer, Boolean> tripHasBookingsMap = new HashMap<>();
             for (Trip trip : trips) {
                 boolean hasBookings = bookingDAO.tripHasBookings(trip.getId());
                 tripHasBookingsMap.put(trip.getId(), hasBookings);
             }
             
-            // Get all bookings for this tour
-            List<Booking> tourBookings = bookingDAO.getBookingsByTourId(tourId);
+            // Load additional information for each booking
+            UserDAO userDAO = new UserDAO();
             
-            // Prepare maps to avoid duplicate lookups
-            Map<Integer, Trip> tripsMap = new HashMap<>();
-            for (Trip trip : trips) {
-                tripsMap.put(trip.getId(), trip);
-            }
-            
+            // Create maps for trips and users to avoid multiple database calls
             Map<Integer, User> usersMap = new HashMap<>();
+            Map<Integer, Trip> tripsMap = new HashMap<>();
             
             for (Booking booking : tourBookings) {
                 // Load trip information
@@ -1073,7 +705,6 @@ public class AdminTourController extends HttpServlet {
             request.setAttribute("trips", trips);
             request.setAttribute("tourBookings", tourBookings);
             request.setAttribute("tripHasBookingsMap", tripHasBookingsMap);
-            request.setAttribute("allCities", allCities);
             
             // Forward to the trips JSP
             request.getRequestDispatcher("/admin/tour-trips.jsp").forward(request, response);
@@ -1088,151 +719,504 @@ public class AdminTourController extends HttpServlet {
     
     private void createTrip(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        
+        Connection conn = null;
         try {
-            // Get parameters from the request
-            int tourId = Integer.parseInt(request.getParameter("tourId"));
-            String departureDateStr = request.getParameter("departureDate");
-            String returnDateStr = request.getParameter("returnDate");
-            String startTime = request.getParameter("startTime");
-            String endTime = request.getParameter("endTime");
-            int availableSlot = Integer.parseInt(request.getParameter("availableSlot"));
-            int destinationCityId = Integer.parseInt(request.getParameter("destinationCityId"));
+            // DEBUG: Output all parameters - THIS IS CRITICAL FOR DEBUGGING
+            System.out.println("\n=== Create Trip - Parameters received ===");
+            Map<String, String[]> params = request.getParameterMap();
+            for (String key : params.keySet()) {
+                String value = params.get(key) != null && params.get(key).length > 0 ? params.get(key)[0] : "null";
+                System.out.println(key + ": [" + value + "]");
+            }
+            System.out.println("=======================================");
             
-            // Get the tour
+            // Get form parameters with validation
+            int tourId;
+            try {
+                String tourIdStr = request.getParameter("tourId");
+                System.out.println("Raw tourId: [" + tourIdStr + "]");
+                tourId = Integer.parseInt(tourIdStr);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid tourId: " + request.getParameter("tourId"));
+                request.setAttribute("errorMessage", "ID tour không hợp lệ");
+                request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+                return;
+            }
+            
+            // Get tour data to determine departure city
             TourDAO tourDAO = new TourDAO();
             Tour tour = tourDAO.getTourById(tourId);
             
             if (tour == null) {
-                session.setAttribute("errorMessage", "Tour not found with ID: " + tourId);
-                response.sendRedirect(request.getContextPath() + "/admin/tours");
+                System.out.println("Tour not found with ID: " + tourId);
+                request.setAttribute("errorMessage", "Tour không tồn tại");
+                request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
                 return;
             }
             
-            // Create a new Trip object
+            // Use the tour's departure city
+            int departureCityId = tour.getDepartureLocationId();
+            
+            // Get destination city from form
+            int destinationCityId;
+            try {
+                String destinationCityIdStr = request.getParameter("destinationCityId");
+                System.out.println("Raw destinationCityId: [" + destinationCityIdStr + "]");
+                destinationCityId = Integer.parseInt(destinationCityIdStr);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid destinationCityId: " + request.getParameter("destinationCityId"));
+                request.setAttribute("errorMessage", "ID thành phố đến không hợp lệ");
+                request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+                return;
+            }
+            
+            // Validate departure date
+            String departureDateStr = request.getParameter("departureDate");
+            System.out.println("Raw departureDate: [" + departureDateStr + "]");
+            if (departureDateStr == null || departureDateStr.trim().isEmpty()) {
+                System.out.println("Departure date is required but was empty");
+                request.setAttribute("errorMessage", "Ngày khởi hành là bắt buộc");
+                request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+                return;
+            }
+            
+            // Validate return date
+            String returnDateStr = request.getParameter("returnDate");
+            System.out.println("Raw returnDate: [" + returnDateStr + "]");
+            if (returnDateStr == null || returnDateStr.trim().isEmpty()) {
+                System.out.println("Return date is required but was empty");
+                request.setAttribute("errorMessage", "Ngày trở về là bắt buộc");
+                request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+                return;
+            }
+            
+            // Convert String dates to java.sql.Timestamp with more robust parsing
+            java.sql.Timestamp departureDate;
+            java.sql.Timestamp returnDate;
+            
+            try {
+                // Remove any non-standard characters and leading/trailing whitespace
+                departureDateStr = departureDateStr.trim().replaceAll("[^0-9\\-/]", "");
+                returnDateStr = returnDateStr.trim().replaceAll("[^0-9\\-/]", "");
+                
+                System.out.println("Cleaned departureDateStr: [" + departureDateStr + "]");
+                System.out.println("Cleaned returnDateStr: [" + returnDateStr + "]");
+                
+                // Check if date format is DD/MM/YYYY
+                if (departureDateStr.contains("/")) {
+                    String[] parts = departureDateStr.split("/");
+                    if (parts.length == 3) {
+                        // Ensure padding with leading zeros if needed
+                        String day = parts[0].length() == 1 ? "0" + parts[0] : parts[0];
+                        String month = parts[1].length() == 1 ? "0" + parts[1] : parts[1];
+                        departureDateStr = parts[2] + "-" + month + "-" + day; // Convert to YYYY-MM-DD
+                    }
+                }
+                
+                if (returnDateStr.contains("/")) {
+                    String[] parts = returnDateStr.split("/");
+                    if (parts.length == 3) {
+                        // Ensure padding with leading zeros if needed
+                        String day = parts[0].length() == 1 ? "0" + parts[0] : parts[0];
+                        String month = parts[1].length() == 1 ? "0" + parts[1] : parts[1];
+                        returnDateStr = parts[2] + "-" + month + "-" + day; // Convert to YYYY-MM-DD
+                    }
+                }
+                
+                System.out.println("Processed departure date: [" + departureDateStr + "]");
+                System.out.println("Processed return date: [" + returnDateStr + "]");
+                
+                try {
+                    // Make sure date strings have the correct format (YYYY-MM-DD)
+                    if (!departureDateStr.matches("^\\d{4}-\\d{2}-\\d{2}$")) {
+                        System.out.println("Departure date does not match expected format: " + departureDateStr);
+                        request.setAttribute("errorMessage", "Định dạng ngày khởi hành không hợp lệ. Vui lòng sử dụng định dạng YYYY-MM-DD");
+                        request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+                        return;
+                    }
+                    
+                    if (!returnDateStr.matches("^\\d{4}-\\d{2}-\\d{2}$")) {
+                        System.out.println("Return date does not match expected format: " + returnDateStr);
+                        request.setAttribute("errorMessage", "Định dạng ngày trở về không hợp lệ. Vui lòng sử dụng định dạng YYYY-MM-DD");
+                        request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+                        return;
+                    }
+                    
+                    // Add time component to make a valid timestamp
+                    String departureDateTimeStr = departureDateStr + " 00:00:00";
+                    String returnDateTimeStr = returnDateStr + " 00:00:00";
+                    
+                    System.out.println("Departure date time string: " + departureDateTimeStr);
+                    System.out.println("Return date time string: " + returnDateTimeStr);
+                    
+                    departureDate = java.sql.Timestamp.valueOf(departureDateTimeStr);
+                    returnDate = java.sql.Timestamp.valueOf(returnDateTimeStr);
+                    
+                    System.out.println("Parsed departure timestamp: " + departureDate);
+                    System.out.println("Parsed return timestamp: " + returnDate);
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Error parsing dates: " + e.getMessage());
+                    e.printStackTrace();
+                    request.setAttribute("errorMessage", "Không thể chuyển đổi định dạng ngày tháng: " + e.getMessage());
+                    request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+                    return;
+                }
+            } catch (Exception e) {
+                System.out.println("Error processing dates: " + e.getMessage());
+                e.printStackTrace();
+                request.setAttribute("errorMessage", "Lỗi xử lý ngày tháng: " + e.getMessage());
+                response.getWriter().write("error: Lỗi xử lý ngày tháng: " + e.getMessage());
+                return;
+            }
+            
+            // Validate and get times - Clean and format for SQL Server time(7)
+            String startTime = request.getParameter("startTime");
+            System.out.println("Raw startTime: [" + startTime + "]");
+            if (startTime == null || startTime.trim().isEmpty()) {
+                startTime = "08:00:00"; // Default to 8 AM with seconds
+                System.out.println("Using default start time: " + startTime);
+            } else {
+                // Use the static method from Trip to clean the time
+                startTime = model.Trip.cleanTimeForSQL(startTime.trim());
+                System.out.println("Cleaned startTime: [" + startTime + "]");
+            }
+            
+            String endTime = request.getParameter("endTime");
+            System.out.println("Raw endTime: [" + endTime + "]");
+            if (endTime == null || endTime.trim().isEmpty()) {
+                endTime = "17:00:00"; // Default to 5 PM with seconds
+                System.out.println("Using default end time: " + endTime);
+            } else {
+                // Use the static method from Trip to clean the time
+                endTime = model.Trip.cleanTimeForSQL(endTime.trim());
+                System.out.println("Cleaned endTime: [" + endTime + "]");
+            }
+            
+            // Safely parse availableSlots - handle both parameter names
+            int availableSlots = 0;
+            String availableSlotsParam = request.getParameter("availableSlots");
+            System.out.println("Raw availableSlots: [" + availableSlotsParam + "]");
+            
+            if (availableSlotsParam == null || availableSlotsParam.isEmpty()) {
+                availableSlotsParam = request.getParameter("availableSlot"); // Try alternative parameter name
+                System.out.println("Raw availableSlot (alternative): [" + availableSlotsParam + "]");
+            }
+            
+            if (availableSlotsParam != null && !availableSlotsParam.isEmpty()) {
+                try {
+                    availableSlots = Integer.parseInt(availableSlotsParam);
+                } catch (NumberFormatException e) {
+                    System.out.println("Error parsing availableSlots: " + e.getMessage());
+                    response.getWriter().write("error: Số chỗ trống không hợp lệ");
+                    return;
+                }
+            } else {
+                System.out.println("Available slots parameter is missing");
+                response.getWriter().write("error: Số chỗ trống là bắt buộc");
+                return;
+            }
+            
+            // Check if available slots is positive
+            if (availableSlots <= 0) {
+                System.out.println("Available slots must be greater than 0, received: " + availableSlots);
+                response.getWriter().write("error: Số chỗ trống phải lớn hơn 0");
+                return;
+            }
+            
+            // Set up transaction
+            conn = DBContext.getConnection();
+            conn.setAutoCommit(false);
+            
+            System.out.println("Creating trip object with validated parameters...");
+            
+            // Create and save trip object
+            TripDAO tripDAO = new TripDAO();
             Trip trip = new Trip();
             trip.setTourId(tourId);
-            
-            // Convert string dates to java.util.Date
-            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
-            java.util.Date departureDate = sdf.parse(departureDateStr);
-            java.util.Date returnDate = sdf.parse(returnDateStr);
-            
-            // Convert java.util.Date to java.sql.Timestamp if needed
-            java.sql.Timestamp departureDateTimestamp = new java.sql.Timestamp(departureDate.getTime());
-            java.sql.Timestamp returnDateTimestamp = new java.sql.Timestamp(returnDate.getTime());
-            
-            trip.setDepartureDate(departureDateTimestamp);
-            trip.setReturnDate(returnDateTimestamp);
+            trip.setDepartureDate(departureDate);
+            trip.setReturnDate(returnDate);
             trip.setStartTime(startTime);
             trip.setEndTime(endTime);
-            trip.setAvailableSlot(availableSlot);
-            // Always set departure city ID to match the tour's departure location ID
-            trip.setDepartureCityId(tour.getDepartureLocationId());
-            trip.setDestinationCityId(destinationCityId);
+            trip.setAvailableSlot(availableSlots);
+            trip.setCreatedDate(new Timestamp(System.currentTimeMillis()));
+            trip.setDepartureCityId(departureCityId); // Use tour's departure city
+            trip.setDestinationCityId(destinationCityId); // Use selected destination city
             trip.setIsDelete(false);
             
-            // Create the trip in the database
-            TripDAO tripDAO = new TripDAO();
+            // Output final trip object data for debugging
+            System.out.println("Final trip object values:");
+            System.out.println("tourId: " + trip.getTourId());
+            System.out.println("departureDate: " + trip.getDepartureDate());
+            System.out.println("returnDate: " + trip.getReturnDate());
+            System.out.println("startTime: " + trip.getStartTime());
+            System.out.println("endTime: " + trip.getEndTime());
+            System.out.println("availableSlot: " + trip.getAvailableSlot());
+            System.out.println("departureCityId: " + trip.getDepartureCityId());
+            System.out.println("destinationCityId: " + trip.getDestinationCityId());
+            
+            // Use the correct method from TripDAO
             int tripId = tripDAO.createTrip(trip);
             
             if (tripId > 0) {
-                // Trip created successfully
-                session.setAttribute("successMessage", "Trip created successfully.");
+                conn.commit();
+                // Redirect to trips page with success message
+                request.getSession().setAttribute("successMessage", "Đã tạo chuyến đi thành công với ID: " + tripId);
+                response.sendRedirect(request.getContextPath() + "/admin/tours/trips?id=" + tourId);
             } else {
-                session.setAttribute("errorMessage", "Failed to create trip.");
+                if (conn != null) {
+                    conn.rollback();
+                }
+                System.out.println("Failed to create trip - createTrip returned -1");
+                request.setAttribute("errorMessage", "Không thể tạo chuyến đi. Kiểm tra logs server để biết chi tiết.");
+                request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+            }
+        } catch (Exception e) {
+            try {
+                if (conn != null) {
+                    conn.rollback();
+                }
+            } catch (SQLException se) {
+                se.printStackTrace();
             }
             
-            // Redirect back to tour trips page
-            response.sendRedirect(request.getContextPath() + "/admin/tours/trips?id=" + tourId);
-            
-        } catch (Exception e) {
-            session.setAttribute("errorMessage", "Error creating trip: " + e.getMessage());
-            response.sendRedirect(request.getContextPath() + "/admin/tours");
+            e.printStackTrace();
+            System.out.println("Error in createTrip: " + e.getMessage());
+            request.setAttribute("errorMessage", "Lỗi khi tạo chuyến đi: " + e.getMessage());
+            request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+        } finally {
+            try {
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }
+            } catch (SQLException se) {
+                se.printStackTrace();
+            }
         }
     }
     
     private void updateTrip(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        
+        Connection conn = null;
         try {
-            // Get parameters from the request
-            int tripId = Integer.parseInt(request.getParameter("tripId"));
-            int tourId = Integer.parseInt(request.getParameter("tourId"));
+            // Get form parameters with basic validation
+            String tripIdStr = request.getParameter("tripId");
+            String tourIdStr = request.getParameter("tourId");
+            
+            if (tripIdStr == null || tripIdStr.isEmpty() || tourIdStr == null || tourIdStr.isEmpty()) {
+                request.setAttribute("errorMessage", "Missing trip ID or tour ID parameter");
+                request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+                return;
+            }
+            
+            int tripId = Integer.parseInt(tripIdStr);
+            int tourId = Integer.parseInt(tourIdStr);
+            
+            // Parse and validate departureDate
             String departureDateStr = request.getParameter("departureDate");
+            if (departureDateStr == null || departureDateStr.trim().isEmpty()) {
+                request.setAttribute("errorMessage", "Departure date is required");
+                request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+                return;
+            }
+            
+            // Parse and validate returnDate
             String returnDateStr = request.getParameter("returnDate");
+            if (returnDateStr == null || returnDateStr.trim().isEmpty()) {
+                request.setAttribute("errorMessage", "Return date is required");
+                request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+                return;
+            }
+            
+            // Convert date strings to timestamps
+            java.sql.Timestamp departureDate;
+            java.sql.Timestamp returnDate;
+            
+            try {
+                // Clean date strings
+                departureDateStr = departureDateStr.trim().replaceAll("[^0-9\\-/]", "");
+                returnDateStr = returnDateStr.trim().replaceAll("[^0-9\\-/]", "");
+                
+                // Convert DD/MM/YYYY to YYYY-MM-DD if needed
+                if (departureDateStr.contains("/")) {
+                    String[] parts = departureDateStr.split("/");
+                    if (parts.length == 3) {
+                        String day = parts[0].length() == 1 ? "0" + parts[0] : parts[0];
+                        String month = parts[1].length() == 1 ? "0" + parts[1] : parts[1];
+                        departureDateStr = parts[2] + "-" + month + "-" + day;
+                    }
+                }
+                
+                if (returnDateStr.contains("/")) {
+                    String[] parts = returnDateStr.split("/");
+                    if (parts.length == 3) {
+                        String day = parts[0].length() == 1 ? "0" + parts[0] : parts[0];
+                        String month = parts[1].length() == 1 ? "0" + parts[1] : parts[1];
+                        returnDateStr = parts[2] + "-" + month + "-" + day;
+                    }
+                }
+                
+                // Ensure dates are in YYYY-MM-DD format
+                if (!departureDateStr.matches("^\\d{4}-\\d{2}-\\d{2}$")) {
+                    request.setAttribute("errorMessage", "Invalid departure date format. Use YYYY-MM-DD format.");
+                    request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+                    return;
+                }
+                
+                if (!returnDateStr.matches("^\\d{4}-\\d{2}-\\d{2}$")) {
+                    request.setAttribute("errorMessage", "Invalid return date format. Use YYYY-MM-DD format.");
+                    request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+                    return;
+                }
+                
+                // Add time component for timestamps
+                departureDate = java.sql.Timestamp.valueOf(departureDateStr + " 00:00:00");
+                returnDate = java.sql.Timestamp.valueOf(returnDateStr + " 00:00:00");
+                
+            } catch (Exception e) {
+                request.setAttribute("errorMessage", "Error processing dates: " + e.getMessage());
+                request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+                return;
+            }
+            
+            // Parse and validate times
             String startTime = request.getParameter("startTime");
+            if (startTime == null || startTime.trim().isEmpty()) {
+                startTime = "08:00:00"; // Default start time
+            } else {
+                startTime = model.Trip.cleanTimeForSQL(startTime.trim());
+            }
+            
             String endTime = request.getParameter("endTime");
-            int availableSlot = Integer.parseInt(request.getParameter("availableSlot"));
-            int destinationCityId = Integer.parseInt(request.getParameter("destinationCityId"));
+            if (endTime == null || endTime.trim().isEmpty()) {
+                endTime = "17:00:00"; // Default end time
+            } else {
+                endTime = model.Trip.cleanTimeForSQL(endTime.trim());
+            }
             
-            // Check if the trip has any bookings
-            BookingDAO bookingDAO = new BookingDAO();
-            boolean hasBookings = bookingDAO.tripHasBookings(tripId);
+            // Parse and validate available slots
+            int availableSlots = 0;
+            String availableSlotsParam = request.getParameter("availableSlots");
             
-            if (hasBookings) {
-                session.setAttribute("errorMessage", "Cannot update trip: Trip has active bookings.");
-                response.sendRedirect(request.getContextPath() + "/admin/tours/trips?id=" + tourId);
+            if (availableSlotsParam == null || availableSlotsParam.isEmpty()) {
+                availableSlotsParam = request.getParameter("availableSlot"); // Try alternative name
+            }
+            
+            if (availableSlotsParam != null && !availableSlotsParam.isEmpty()) {
+                try {
+                    availableSlots = Integer.parseInt(availableSlotsParam);
+                    if (availableSlots < 0) {
+                        request.setAttribute("errorMessage", "Available slots cannot be negative");
+                        request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                    request.setAttribute("errorMessage", "Invalid available slots value");
+                    request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+                    return;
+                }
+            } else {
+                request.setAttribute("errorMessage", "Available slots is required");
+                request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
                 return;
             }
             
-            // Get the existing trip
+            // Get trip's current data
             TripDAO tripDAO = new TripDAO();
-            Trip trip = tripDAO.getTripById(tripId);
+            Trip existingTrip = tripDAO.getTripById(tripId);
             
-            if (trip == null) {
-                session.setAttribute("errorMessage", "Trip not found with ID: " + tripId);
-                response.sendRedirect(request.getContextPath() + "/admin/tours/trips?id=" + tourId);
+            if (existingTrip == null) {
+                request.setAttribute("errorMessage", "Trip not found with ID: " + tripId);
+                request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
                 return;
             }
             
-            // Get the tour to ensure departure city matches
+            // Get the tour to get the default departure city
             TourDAO tourDAO = new TourDAO();
             Tour tour = tourDAO.getTourById(tourId);
             
             if (tour == null) {
-                session.setAttribute("errorMessage", "Tour not found with ID: " + tourId);
-                response.sendRedirect(request.getContextPath() + "/admin/tours");
+                request.setAttribute("errorMessage", "Tour not found with ID: " + tourId);
+                request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
                 return;
             }
             
-            // Update trip properties
-            // Convert string dates to java.util.Date
-            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
-            java.util.Date departureDate = sdf.parse(departureDateStr);
-            java.util.Date returnDate = sdf.parse(returnDateStr);
+            // Use the tour's departure location ID for the trip
+            int departureCityId = tour.getDepartureLocationId();
             
-            // Convert java.util.Date to java.sql.Timestamp if needed
-            java.sql.Timestamp departureDateTimestamp = new java.sql.Timestamp(departureDate.getTime());
-            java.sql.Timestamp returnDateTimestamp = new java.sql.Timestamp(returnDate.getTime());
+            // Parse and validate destination city ID
+            int destinationCityId = 0;
+            String destinationCityIdParam = request.getParameter("destinationCityId");
             
-            trip.setDepartureDate(departureDateTimestamp);
-            trip.setReturnDate(returnDateTimestamp);
-            trip.setStartTime(startTime);
-            trip.setEndTime(endTime);
-            trip.setAvailableSlot(availableSlot);
-            // Always set departure city ID to match the tour's departure location ID
-            trip.setDepartureCityId(tour.getDepartureLocationId());
-            trip.setDestinationCityId(destinationCityId);
-            
-            // Update the trip in the database
-            boolean updated = tripDAO.updateTrip(trip);
-            
-            if (updated) {
-                // Trip updated successfully
-                session.setAttribute("successMessage", "Trip updated successfully.");
+            if (destinationCityIdParam != null && !destinationCityIdParam.isEmpty()) {
+                try {
+                    destinationCityId = Integer.parseInt(destinationCityIdParam);
+                } catch (NumberFormatException e) {
+                    request.setAttribute("errorMessage", "Invalid destination city ID");
+                    request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+                    return;
+                }
             } else {
-                session.setAttribute("errorMessage", "Failed to update trip.");
+                // If no destination city is provided, use the existing one
+                destinationCityId = existingTrip.getDestinationCityId();
             }
             
-            // Redirect back to tour trips page
-            response.sendRedirect(request.getContextPath() + "/admin/tours/trips?id=" + tourId);
+            // Use the database connection with transaction for update
+            conn = DBContext.getConnection();
+            conn.setAutoCommit(false);
             
+            // Create and update trip object
+            Trip trip = new Trip();
+            trip.setId(tripId);
+            trip.setTourId(tourId);
+            trip.setDepartureDate(departureDate);
+            trip.setReturnDate(returnDate);
+            trip.setStartTime(startTime);
+            trip.setEndTime(endTime);
+            trip.setAvailableSlot(availableSlots);
+            
+            // Preserve existing values that might not be in the form
+            trip.setDepartureCityId(existingTrip.getDepartureCityId());
+            trip.setDestinationCityId(destinationCityId);
+            trip.setIsDelete(existingTrip.isIsDelete());
+            trip.setCreatedDate(existingTrip.getCreatedDate());
+            
+            boolean success = tripDAO.updateTrip(trip);
+            
+            if (success) {
+                conn.commit();
+                // Redirect with success message
+                request.getSession().setAttribute("successMessage", "Trip updated successfully");
+                response.sendRedirect(request.getContextPath() + "/admin/tours/trips?id=" + tourId);
+            } else {
+                if (conn != null) {
+                    conn.rollback();
+                }
+                System.out.println("Failed to update trip ID: " + tripId);
+                request.setAttribute("errorMessage", "Unable to update trip");
+                request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+            }
         } catch (Exception e) {
-            session.setAttribute("errorMessage", "Error updating trip: " + e.getMessage());
-            response.sendRedirect(request.getContextPath() + "/admin/tours");
+            try {
+                if (conn != null) {
+                    conn.rollback();
+                }
+            } catch (SQLException se) {
+                se.printStackTrace();
+            }
+            
+            e.printStackTrace();
+            request.setAttribute("errorMessage", "Error updating trip: " + e.getMessage());
+            request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
+        } finally {
+            try {
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }
+            } catch (SQLException se) {
+                se.printStackTrace();
+            }
         }
     }
     
@@ -1769,19 +1753,10 @@ public class AdminTourController extends HttpServlet {
             
             boolean hasBookings = bookingDAO.tourHasBookings(tourId);
             
-            System.out.println("DEBUG - Checking tour ID: " + tourId + ", hasBookings: " + hasBookings);
-            
-            // Also get the count of trips for the tour for debugging
-            TripDAO tripDAO = new TripDAO();
-            int tripCount = tripDAO.getTripCountByTourId(tourId);
-            System.out.println("DEBUG - Tour ID: " + tourId + " has " + tripCount + " trips");
-            
             if (hasBookings) {
                 response.getWriter().write("has-bookings");
-                System.out.println("DEBUG - Tour ID: " + tourId + " has active bookings, cannot delete");
             } else {
                 response.getWriter().write("no-bookings");
-                System.out.println("DEBUG - Tour ID: " + tourId + " has no active bookings, can delete");
             }
         } catch (NumberFormatException e) {
             response.getWriter().write("error: Invalid tour ID format");
@@ -1869,24 +1844,19 @@ public class AdminTourController extends HttpServlet {
             response.setContentType("text/html;charset=UTF-8");
             
             int tripId = Integer.parseInt(request.getParameter("tripId"));
-            System.out.println("Loading bookings for trip ID: " + tripId);
             
             // Get trip details
             TripDAO tripDAO = new TripDAO();
             Trip trip = tripDAO.getTripById(tripId);
             
             if (trip == null) {
-                System.out.println("Error: Trip not found with ID: " + tripId);
-                response.getWriter().write("<div class='alert alert-danger'><i class='fas fa-exclamation-circle me-2'></i>Trip not found. The trip may have been deleted or does not exist.</div>");
+                response.getWriter().write("<div class='alert alert-danger'>Trip not found</div>");
                 return;
             }
-            
-            System.out.println("Trip found: " + trip.getId() + ", Tour ID: " + trip.getTourId() + ", Departure Date: " + trip.getDepartureDate());
             
             // Get bookings for this trip
             BookingDAO bookingDAO = new BookingDAO();
             List<Booking> bookings = bookingDAO.getBookingsByTripId(tripId);
-            System.out.println("Found " + bookings.size() + " bookings for trip ID: " + tripId);
             
             // Get user info for each booking
             UserDAO userDAO = new UserDAO();
@@ -1908,118 +1878,10 @@ public class AdminTourController extends HttpServlet {
             request.getRequestDispatcher("/admin/fragments/trip-bookings.jsp").forward(request, response);
             
         } catch (NumberFormatException e) {
-            System.out.println("Error: Invalid trip ID format: " + e.getMessage());
-            response.getWriter().write("<div class='alert alert-danger'><i class='fas fa-exclamation-circle me-2'></i>Invalid trip ID format. Please provide a valid numeric ID.</div>");
+            response.getWriter().write("<div class='alert alert-danger'>Invalid trip ID</div>");
         } catch (Exception e) {
-            System.out.println("Error loading trip bookings: " + e.getMessage());
+            response.getWriter().write("<div class='alert alert-danger'>Error loading trip bookings: " + e.getMessage() + "</div>");
             e.printStackTrace();
-            response.getWriter().write("<div class='alert alert-danger'><i class='fas fa-exclamation-circle me-2'></i>Error loading trip bookings: " + e.getMessage() + "</div>");
-        }
-    }
-
-    private void linkPromotionToTour(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        
-        try {
-            int tourId = Integer.parseInt(request.getParameter("tourId"));
-            int promotionId = Integer.parseInt(request.getParameter("promotionId"));
-            
-            PromotionDAO promotionDAO = new PromotionDAO();
-            boolean success = promotionDAO.linkPromotionToTour(tourId, promotionId);
-            
-            if (success) {
-                session.setAttribute("successMessage", "Promotion successfully linked to tour.");
-            } else {
-                session.setAttribute("errorMessage", "Failed to link promotion to tour.");
-            }
-            
-            response.sendRedirect(request.getContextPath() + "/admin/tours/view?id=" + tourId);
-        } catch (NumberFormatException e) {
-            session.setAttribute("errorMessage", "Invalid tour or promotion ID");
-            response.sendRedirect(request.getContextPath() + "/admin/tours");
-        } catch (Exception e) {
-            session.setAttribute("errorMessage", "Error linking promotion: " + e.getMessage());
-            response.sendRedirect(request.getContextPath() + "/admin/tours");
-        }
-    }
-    
-    private void unlinkPromotionFromTour(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        
-        try {
-            int tourId = Integer.parseInt(request.getParameter("tourId"));
-            int promotionId = Integer.parseInt(request.getParameter("promotionId"));
-            
-            PromotionDAO promotionDAO = new PromotionDAO();
-            boolean success = promotionDAO.unlinkPromotionFromTour(tourId, promotionId);
-            
-            if (success) {
-                session.setAttribute("successMessage", "Promotion successfully unlinked from tour.");
-            } else {
-                session.setAttribute("errorMessage", "Failed to unlink promotion from tour.");
-            }
-            
-            response.sendRedirect(request.getContextPath() + "/admin/tours/view?id=" + tourId);
-        } catch (NumberFormatException e) {
-            session.setAttribute("errorMessage", "Invalid tour or promotion ID");
-            response.sendRedirect(request.getContextPath() + "/admin/tours");
-        } catch (Exception e) {
-            session.setAttribute("errorMessage", "Error unlinking promotion: " + e.getMessage());
-            response.sendRedirect(request.getContextPath() + "/admin/tours");
-        }
-    }
-
-    /**
-     * Returns a JSON array of all cities for the city dropdowns in the trip pages
-     */
-    private void listCitiesAsJson(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        try {
-            CityDAO cityDAO = new CityDAO();
-            List<City> cities = cityDAO.getAllCities();
-            
-            // Setting the appropriate content type and headers for JSON
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-            response.setHeader("Pragma", "no-cache");
-            response.setHeader("Expires", "0");
-            
-            // Create a JSON array for cities
-            StringBuilder sb = new StringBuilder();
-            sb.append("[");
-            
-            for (int i = 0; i < cities.size(); i++) {
-                City city = cities.get(i);
-                sb.append("{\"id\":").append(city.getId()).append(",\"name\":\"").append(escapeJsonString(city.getName())).append("\"}");
-                
-                if (i < cities.size() - 1) {
-                    sb.append(",");
-                }
-            }
-            
-            sb.append("]");
-            
-            // Log the result for debugging (truncated for large data)
-            String jsonResult = sb.toString();
-            if (jsonResult.length() > 500) {
-                System.out.println("City List JSON Response (truncated): " + jsonResult.substring(0, 500) + "...");
-            } else {
-                System.out.println("City List JSON Response: " + jsonResult);
-            }
-            
-            // Write the JSON response
-            response.getWriter().write(jsonResult);
-        } catch (SQLException | ClassNotFoundException e) {
-            System.out.println("Error fetching cities: " + e.getMessage());
-            e.printStackTrace();
-            
-            // Return an empty array with error in case of exception
-            response.setContentType("application/json");
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("{\"error\":\"Error fetching city data: " + escapeJsonString(e.getMessage()) + "\", \"cities\":[]}");
         }
     }
 }

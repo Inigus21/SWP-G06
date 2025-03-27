@@ -9,22 +9,7 @@
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.time.format.DateTimeFormatter" %>
-<%@ page import="java.text.DecimalFormat" %>
-<%@ page import="java.text.DecimalFormatSymbols" %>
-<%@ page import="java.util.Currency" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-
-<%
-    // Format currency for Vietnamese format
-    NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
-    currencyFormatter.setCurrency(Currency.getInstance("VND"));
-    DecimalFormatSymbols dfs = new DecimalFormatSymbols(new Locale("vi", "VN"));
-    dfs.setCurrencySymbol("VNĐ");
-    ((DecimalFormat) currencyFormatter).setDecimalFormatSymbols(dfs);
-    
-    // Make formatter available to EL
-    pageContext.setAttribute("currencyFormatter", currencyFormatter);
-%>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -70,10 +55,10 @@
                         <div class="mb-6">
                             <c:if test="${promotion != null}">
                                 <div class="text-gray-500 line-through text-lg">
-                                    ${currencyFormatter.format(tour.getPriceAdult())} / Khách
+                                    ${String.format("%,.0f", tour.getPriceAdult())} đ / Khách
                                 </div>
                                 <div class="text-3xl font-bold text-red-600">
-                                    ${currencyFormatter.format(tour.getPriceAdult() * (1 - (promotion.getDiscountPercentage() / 100.0)))}
+                                    ${String.format("%,.0f", tour.getPriceAdult() * (1 - (promotion.getDiscountPercentage() / 100.0)))} đ
                                     <span class="text-lg font-normal">/ Khách</span>
                                 </div>
                                 <div class="text-red-600 text-sm mt-1">
@@ -82,7 +67,7 @@
                             </c:if>
                             <c:if test="${promotion == null}">
                                 <div class="text-3xl font-bold text-red-600">
-                                    ${currencyFormatter.format(tour.getPriceAdult())}
+                                    ${String.format("%,.0f", tour.getPriceAdult())} đ
                                     <span class="text-lg font-normal">/ Khách</span>
                                 </div>
                             </c:if>
@@ -344,10 +329,10 @@
                                             <div class="text-gray-600 text-sm">(Từ 12 tuổi trở lên)</div>
                                             <c:if test="${promotion != null}">
                                                 <div class="text-gray-500 line-through text-sm mt-2">
-                                                    ${currencyFormatter.format(tour.getPriceAdult())}
+                                                    ${String.format("%,.0f", tour.getPriceAdult())} đ
                                                 </div>
                                                 <div class="text-red-600 font-bold">
-                                                    ${currencyFormatter.format(tour.getPriceAdult() * (1 - (promotion.getDiscountPercentage() / 100.0)))}
+                                                    ${String.format("%,.0f", tour.getPriceAdult() * (1 - (promotion.getDiscountPercentage() / 100.0)))} đ
                                                 </div>
                                                 <div class="text-red-500 text-sm">
                                                     Giảm ${String.format("%.0f", promotion.getDiscountPercentage())}%
@@ -355,7 +340,7 @@
                                             </c:if>
                                             <c:if test="${promotion == null}">
                                                 <div class="text-red-600 font-bold mt-2">
-                                                    ${currencyFormatter.format(tour.getPriceAdult())}
+                                                    ${String.format("%,.0f", tour.getPriceAdult())} đ
                                                 </div>
                                             </c:if>
                                         </div>
@@ -364,10 +349,10 @@
                                             <div class="text-gray-600 text-sm">(Từ 5 đến 11 tuổi)</div>
                                             <c:if test="${promotion != null}">
                                                 <div class="text-gray-500 line-through text-sm mt-2">
-                                                    <fmt:formatNumber value="${tour.getPriceChildren()}" pattern="#,##0"/>
+                                                    <fmt:formatNumber value="${tour.getPriceChildren()}" pattern="#,##0"/> đ
                                                 </div>
                                                 <div class="text-red-600 font-bold">
-                                                    <fmt:formatNumber value="${tour.getPriceChildren() * (1 - promotion.getDiscountPercentage()/100)}" pattern="#,##0"/>
+                                                    <fmt:formatNumber value="${tour.getPriceChildren() * (1 - promotion.getDiscountPercentage()/100)}" pattern="#,##0"/> đ
                                                 </div>
                                                 <div class="text-red-500 text-sm">
                                                     Giảm ${promotion.getDiscountPercentage()}%
@@ -375,7 +360,7 @@
                                             </c:if>
                                             <c:if test="${promotion == null}">
                                                 <div class="text-red-600 font-bold mt-2">
-                                                    <fmt:formatNumber value="${tour.getPriceChildren()}" pattern="#,##0"/>
+                                                    <fmt:formatNumber value="${tour.getPriceChildren()}" pattern="#,##0"/> đ
                                                 </div>
                                             </c:if>
                                         </div>
@@ -504,7 +489,7 @@
                                         <div class="w-16 text-sm text-gray-600"><%= i %> sao</div>
                                         <div class="flex-1 mx-2">
                                             <div class="h-2 bg-gray-200 rounded-full">
-                                                <div class="h-2 bg-yellow-400 rounded-full" style="width: <%=widthPercentage%>%"></div>
+                                                <div class="h-2 bg-yellow-400 rounded-full" style="width:<%= widthPercentage %>%"></div>
                                             </div>
                                         </div>
                                         <div class="w-10 text-xs text-gray-600"><%= count %></div>
@@ -518,55 +503,6 @@
                         <% if (currentUser != null && userCanReview && !userHasReviewed) { %>
                         <div class="mb-8 border p-4 rounded-lg bg-blue-50">
                             <h3 class="font-bold text-lg mb-4">Đánh giá tour</h3>
-                            
-                            <%-- Display error messages --%>
-                            <% 
-                                String errorParam = request.getParameter("error");
-                                String successParam = request.getParameter("success");
-                                
-                                if (errorParam != null) {
-                                    String errorMessage = "";
-                                    switch(errorParam) {
-                                        case "login_required":
-                                            errorMessage = "Bạn cần đăng nhập để đánh giá tour.";
-                                            break;
-                                        case "invalid_data":
-                                            errorMessage = "Thông tin đánh giá không hợp lệ.";
-                                            break;
-                                        case "invalid_rating":
-                                            errorMessage = "Đánh giá phải từ 1 đến 5 sao.";
-                                            break;
-                                        case "already_reviewed":
-                                            errorMessage = "Bạn đã đánh giá tour này rồi.";
-                                            break;
-                                        case "not_eligible":
-                                            errorMessage = "Bạn chỉ có thể đánh giá sau khi đã đặt tour và chuyến đi đã kết thúc.";
-                                            break;
-                                        case "save_failed":
-                                            errorMessage = "Có lỗi xảy ra khi lưu đánh giá. Vui lòng thử lại sau.";
-                                            break;
-                                        case "unexpected":
-                                            errorMessage = "Có lỗi không mong muốn xảy ra. Vui lòng thử lại sau.";
-                                            break;
-                                        default:
-                                            errorMessage = "Đã xảy ra lỗi.";
-                                    }
-                            %>
-                                <div class="mb-4 p-3 bg-red-100 border border-red-200 text-red-700 rounded-md">
-                                    <div class="flex items-center">
-                                        <span class="material-symbols-outlined mr-2">error</span>
-                                        <p><%= errorMessage %></p>
-                                    </div>
-                                </div>
-                            <% } else if (successParam != null && successParam.equals("true")) { %>
-                                <div class="mb-4 p-3 bg-green-100 border border-green-200 text-green-700 rounded-md">
-                                    <div class="flex items-center">
-                                        <span class="material-symbols-outlined mr-2">check_circle</span>
-                                        <p>Cảm ơn bạn đã đánh giá tour!</p>
-                                    </div>
-                                </div>
-                            <% } %>
-                            
                             <form action="review" method="post" id="reviewForm">
                                 <input type="hidden" name="tourId" value="${tour.id}">
                                 
@@ -612,19 +548,6 @@
                                 <span class="material-symbols-outlined mr-2">info</span>
                                 <p>Bạn chỉ có thể đánh giá sau khi đã đặt và hoàn thành chuyến đi.</p>
                             </div>
-                            
-                            <%-- Display error messages --%>
-                            <% 
-                                String errorParam = request.getParameter("error");
-                                if (errorParam != null && errorParam.equals("not_eligible")) {
-                            %>
-                                <div class="mt-3 p-3 bg-red-100 border border-red-200 text-red-700 rounded-md">
-                                    <div class="flex items-center">
-                                        <span class="material-symbols-outlined mr-2">error</span>
-                                        <p>Bạn chỉ có thể đánh giá sau khi đã đặt tour và chuyến đi đã kết thúc.</p>
-                                    </div>
-                                </div>
-                            <% } %>
                         </div>
                         <% } else { %>
                         <div class="mb-8 p-4 rounded-lg bg-blue-50 border border-blue-200">
@@ -632,19 +555,6 @@
                                 <span class="material-symbols-outlined mr-2">login</span>
                                 <p>Vui lòng <a href="login" class="underline font-medium">đăng nhập</a> để đánh giá tour này.</p>
                             </div>
-                            
-                            <%-- Display error messages --%>
-                            <% 
-                                String errorParam = request.getParameter("error");
-                                if (errorParam != null && errorParam.equals("login_required")) {
-                            %>
-                                <div class="mt-3 p-3 bg-red-100 border border-red-200 text-red-700 rounded-md">
-                                    <div class="flex items-center">
-                                        <span class="material-symbols-outlined mr-2">error</span>
-                                        <p>Bạn cần đăng nhập để đánh giá tour.</p>
-                                    </div>
-                                </div>
-                            <% } %>
                         </div>
                         <% } %>
                         
@@ -1004,14 +914,14 @@
                                 <div class="text-xs text-gray-600 mb-1">Giá từ</div>
                                 <% if (hasPromotion) { %>
                                     <div class="text-gray-500 line-through text-xs">
-                                        <%= currencyFormatter.format(relatedTour.getPriceAdult()) %>
+                                        <%= String.format("%,.0f", relatedTour.getPriceAdult()) %> đ
                                     </div>
                                     <div class="text-red-600 font-bold text-lg">
-                                        <%= currencyFormatter.format(displayPrice) %>
+                                        <%= String.format("%,.0f", displayPrice) %> đ
                                         <span class="text-xs font-normal ml-1">(-<%= String.format("%.0f", discountPercentage) %>%)</span>
                                     </div>
                                 <% } else { %>
-                                    <div class="text-red-600 font-bold text-lg"><%= currencyFormatter.format(displayPrice) %></div>
+                                    <div class="text-red-600 font-bold text-lg"><%= String.format("%,.0f", displayPrice) %> đ</div>
                                 <% } %>
                                 <div class="flex justify-end mt-2">
                                     <a href="tour-detail?id=<%= relatedTour.getId() %>" class="text-blue-600 hover:text-blue-800 text-xs flex items-center transition-colors">

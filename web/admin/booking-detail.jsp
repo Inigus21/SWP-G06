@@ -44,7 +44,7 @@
                 </div>
                 <% session.removeAttribute("successMessage"); %>
             </c:if>
-            
+
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">Booking #${booking.id}</h6>
@@ -65,7 +65,7 @@
                                }
                            }
                         %>
-                        
+
                         <c:choose>
                             <c:when test="${booking.status eq 'Đã thanh toán'}">
                                 <!-- For "Đã thanh toán" status, show approve/reject buttons -->
@@ -86,10 +86,8 @@
                                 </form>
                             </c:when>
                         </c:choose>
-                        
-                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteBookingModal">
-                            <i class="fas fa-trash me-1"></i> Delete
-                        </button>
+
+
                     </div>
                 </div>
                 <div class="card-body">
@@ -109,9 +107,7 @@
                                             <th>Status</th>
                                             <td>
                                                 <c:choose>
-                                                    <c:when test="${booking.status eq 'Chờ thanh toán'}">
-                                                        <span class="badge bg-warning">Chờ thanh toán</span>
-                                                    </c:when>
+
                                                     <c:when test="${booking.status eq 'Đã thanh toán'}">
                                                         <span class="badge bg-primary">Đã thanh toán</span>
                                                     </c:when>
@@ -131,7 +127,7 @@
                                                         <span class="badge bg-secondary">${booking.status != null ? booking.status : 'Unknown'}</span>
                                                     </c:otherwise>
                                                 </c:choose>
-                                                
+
                                                 <c:if test="${shouldMarkComplete}">
                                                     <span class="badge bg-warning ms-1" title="Tour has completed but status not updated">
                                                         <i class="fas fa-exclamation-triangle"></i> Needs Update
@@ -167,7 +163,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="col-md-6">
                             <div class="card mb-4">
                                 <div class="card-header">
@@ -196,7 +192,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-12">
                             <div class="card mb-4">
@@ -249,7 +245,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-12">
                             <div class="card mb-4">
@@ -285,7 +281,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="card mb-4">
                                 <div class="card-header">
                                     <h6 class="m-0 font-weight-bold text-primary">Status History</h6>
@@ -325,6 +321,7 @@
     </div>
 </div>
 
+
 <!-- Reject Booking Modal -->
 <div class="modal fade" id="rejectBookingModal" tabindex="-1" aria-labelledby="rejectBookingModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -351,32 +348,7 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteBookingModal" tabindex="-1" aria-labelledby="deleteBookingModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteBookingModalLabel">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="${pageContext.request.contextPath}/admin/bookings/delete" method="get">
-                <div class="modal-body">
-                    <input type="hidden" name="id" value="${booking.id}">
-                    <p>Are you sure you want to delete booking #${booking.id}? This action cannot be undone.</p>
-                    <div class="mb-3">
-                        <label for="deleteReason" class="form-label">Reason for Deletion</label>
-                        <textarea class="form-control" id="deleteReason" name="reason" rows="3" required></textarea>
-                        <div class="form-text">Please provide a reason for deleting this booking.</div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

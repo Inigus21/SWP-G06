@@ -32,7 +32,8 @@
             <h6 class="mb-0">Add New Schedule Day</h6>
         </div>
         <div class="card-body">
-            <form action="${pageContext.request.contextPath}/admin/tours/schedule/create" method="post" id="addScheduleForm">
+            <form action="${pageContext.request.contextPath}/admin/tours" method="post" id="addScheduleForm">
+                <input type="hidden" name="action" value="create-schedule">
                 <input type="hidden" name="tourId" value="${tour.id}">
                 
                 <div class="row mb-3">
@@ -70,7 +71,8 @@
             <h6 class="mb-0">Edit Schedule Day</h6>
         </div>
         <div class="card-body">
-            <form action="${pageContext.request.contextPath}/admin/tours/schedule/edit" method="post" id="editScheduleForm">
+            <form action="${pageContext.request.contextPath}/admin/tours" method="post" id="editScheduleForm">
+                <input type="hidden" name="action" value="update-schedule">
                 <input type="hidden" name="tourId" value="${tour.id}">
                 <input type="hidden" name="scheduleId" id="editScheduleId">
                 
@@ -137,7 +139,7 @@
                                             data-description="${schedule.description}">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <a href="${pageContext.request.contextPath}/admin/tours/schedule/delete?id=${schedule.id}&tourId=${tour.id}" 
+                                    <a href="${pageContext.request.contextPath}/admin/tours?action=delete-schedule&id=${schedule.id}&tourId=${tour.id}" 
                                        class="btn btn-danger"
                                        onclick="return confirm('Are you sure you want to delete this schedule?')">
                                         <i class="fas fa-trash"></i>

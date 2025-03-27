@@ -75,30 +75,10 @@ public class BookingServlet extends HttpServlet {
             // Check if we should apply a promotion
             boolean checkPromotion = "true".equals(request.getParameter("checkPromotion"));
             int tripId = 0;
-            Trip trip = null;
-            
             try {
                 String tripIdParam = request.getParameter("tripId");
                 if (tripIdParam != null && !tripIdParam.isEmpty()) {
                     tripId = Integer.parseInt(tripIdParam);
-                    
-                    // Load the trip data
-                    TripDAO tripDAO = new TripDAO();
-                    trip = tripDAO.getTripById(tripId);
-                    
-                    // If no specific trip was requested or the requested trip couldn't be found,
-                    // try to find an available one
-                    if (trip == null) {
-                        trip = tripDAO.getAvailableTripForTour(tourId, 1); // At least 1 slot needed
-                        if (trip != null) {
-                            tripId = trip.getId();
-                        }
-                    }
-                    
-                    // If we found a trip, store it in the request
-                    if (trip != null) {
-                        request.setAttribute("trip", trip);
-                    }
                 }
             } catch (NumberFormatException e) {
                 // Invalid trip ID, ignore
@@ -112,11 +92,7 @@ public class BookingServlet extends HttpServlet {
                 // Check if the trip falls within the promotion period
                 if (promotion != null) {
                     TripDAO tripDAO = new TripDAO();
-                    // Using the existing trip variable or fetching it if null
-                    if (trip == null) {
-                        trip = tripDAO.getTripById(tripId);
-                    }
-                    
+                    Trip trip = tripDAO.getTripById(tripId);
                     if (trip != null && trip.getDepartureDate() != null) {
                         Date tripDate = trip.getDepartureDate();
                         boolean hasValidPromotion = tripDate.compareTo(promotion.getStartDate()) >= 0 &&
@@ -147,19 +123,6 @@ public class BookingServlet extends HttpServlet {
             
             // Store the tour in the request
             request.setAttribute("tour", tour);
-            
-            // If we didn't find a specific trip, try to find an available one
-            if (trip == null) {
-                try {
-                    TripDAO tripDAO = new TripDAO();
-                    trip = tripDAO.getAvailableTripForTour(tourId, 1); // At least 1 slot needed
-                    if (trip != null) {
-                        request.setAttribute("trip", trip);
-                    }
-                } catch (Exception e) {
-                    // If there's an error finding a trip, continue without setting one
-                }
-            }
             
             // Forward to the booking page
             request.getRequestDispatcher("booking.jsp").forward(request, response);

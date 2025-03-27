@@ -18,7 +18,7 @@ import model.Promotion;
 import model.Tour;
 import model.TourPromotion;
 
-@WebServlet(name = "AdminPromotionController", urlPatterns = {"/admin/promotions", "/admin/promotions/*", "/admin/api/promotion-linked"})
+@WebServlet(name = "AdminPromotionController", urlPatterns = {"/admin/promotions", "/admin/promotions/*"})
 public class AdminPromotionController extends HttpServlet {
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
@@ -37,19 +37,12 @@ public class AdminPromotionController extends HttpServlet {
             throws ServletException, IOException {
         String path = request.getPathInfo();
         String action = request.getParameter("action");
-        String servletPath = request.getServletPath();
         
         if (path == null) {
             path = "";
         }
         
         try {
-            // Handle API request to check if promotion is linked to tours
-            if ("/admin/api/promotion-linked".equals(servletPath)) {
-                checkPromotionLinked(request, response);
-                return;
-            }
-            
             switch (path) {
                 case "/create":
                     showCreateForm(request, response);
@@ -139,65 +132,9 @@ public class AdminPromotionController extends HttpServlet {
             // Use default values if parsing fails
         }
         
-        // Get search parameters
-        String title = request.getParameter("title");
-        Double minDiscount = null;
-        Double maxDiscount = null;
-        Timestamp startDateFrom = null;
-        Timestamp endDateTo = null;
-        
-        // Parse discount range
-        try {
-            if (request.getParameter("minDiscount") != null && !request.getParameter("minDiscount").isEmpty()) {
-                minDiscount = Double.parseDouble(request.getParameter("minDiscount"));
-            }
-            if (request.getParameter("maxDiscount") != null && !request.getParameter("maxDiscount").isEmpty()) {
-                maxDiscount = Double.parseDouble(request.getParameter("maxDiscount"));
-            }
-        } catch (NumberFormatException e) {
-            // Ignore invalid number formats
-        }
-        
-        // Parse date ranges
-        try {
-            if (request.getParameter("startDateFrom") != null && !request.getParameter("startDateFrom").isEmpty()) {
-                Date date = DATE_FORMAT.parse(request.getParameter("startDateFrom"));
-                startDateFrom = new Timestamp(date.getTime());
-            }
-            if (request.getParameter("endDateTo") != null && !request.getParameter("endDateTo").isEmpty()) {
-                Date date = DATE_FORMAT.parse(request.getParameter("endDateTo"));
-                endDateTo = new Timestamp(date.getTime());
-            }
-        } catch (ParseException e) {
-            // Ignore invalid date formats
-        }
-        
-        // Check if any search parameters are provided
-        boolean isSearching = title != null || minDiscount != null || maxDiscount != null || 
-                             startDateFrom != null || endDateTo != null;
-        
-        List<Promotion> promotions;
-        int totalPromotions;
-        
-        if (isSearching) {
-            // Perform search with simplified filters
-            promotions = promotionDAO.searchPromotions(title, null, minDiscount, maxDiscount, 
-                                                      startDateFrom, null, null, endDateTo, 
-                                                      page, itemsPerPage);
-            totalPromotions = promotionDAO.getTotalSearchResults(title, null, minDiscount, maxDiscount, 
-                                                               startDateFrom, null, null, endDateTo);
-        } else {
-            // Get all promotions without filters
-            promotions = promotionDAO.getAllPromotions(page, itemsPerPage);
-            totalPromotions = promotionDAO.getTotalPromotions();
-        }
-        
-        // Check which promotions are linked to tours
-        for (Promotion promotion : promotions) {
-            boolean isLinked = promotionDAO.isPromotionLinkedToTours(promotion.getId());
-            promotion.setHasLinkedTours(isLinked);
-        }
-        
+        // Get promotions for the current page
+        List<Promotion> promotions = promotionDAO.getAllPromotions(page, itemsPerPage);
+        int totalPromotions = promotionDAO.getTotalPromotions();
         int totalPages = (int) Math.ceil((double) totalPromotions / itemsPerPage);
         
         // Set attributes for the JSP
@@ -206,13 +143,6 @@ public class AdminPromotionController extends HttpServlet {
         request.setAttribute("itemsPerPage", itemsPerPage);
         request.setAttribute("totalItems", totalPromotions);
         request.setAttribute("totalPages", totalPages);
-        
-        // Set search parameters as attributes to retain form values
-        request.setAttribute("title", title);
-        request.setAttribute("minDiscount", minDiscount);
-        request.setAttribute("maxDiscount", maxDiscount);
-        request.setAttribute("startDateFrom", request.getParameter("startDateFrom"));
-        request.setAttribute("endDateTo", request.getParameter("endDateTo"));
         
         // Forward to the promotions list JSP
         request.getRequestDispatcher("/admin/promotions.jsp").forward(request, response);
@@ -340,56 +270,25 @@ public class AdminPromotionController extends HttpServlet {
         
         // Get parameters from the form
         String title = request.getParameter("title");
-        String discountStr = request.getParameter("discountPercentage");
-        String startDateStr = request.getParameter("startDate");
-        String endDateStr = request.getParameter("endDate");
+        double discountPercentage = Double.parseDouble(request.getParameter("discountPercentage"));
+        Date startDate = DATE_FORMAT.parse(request.getParameter("startDate"));
+        Date endDate = DATE_FORMAT.parse(request.getParameter("endDate"));
         
-        // Set parameters back to the request for preserving input values
-        request.setAttribute("param", request.getParameterMap());
-        
-        // Basic validation
+        // Validate data
         if (title == null || title.trim().isEmpty()) {
             request.setAttribute("errorMessage", "Title is required!");
             request.getRequestDispatcher("/admin/promotion-form.jsp").forward(request, response);
             return;
         }
         
-        // Validate discount percentage
-        double discountPercentage;
-        try {
-            discountPercentage = Double.parseDouble(discountStr);
-            if (discountPercentage <= 0 || discountPercentage > 100) {
-                request.setAttribute("errorMessage", "Discount percentage must be between 0.01 and 100!");
-                request.getRequestDispatcher("/admin/promotion-form.jsp").forward(request, response);
-                return;
-            }
-        } catch (NumberFormatException e) {
-            request.setAttribute("errorMessage", "Invalid discount percentage format!");
+        if (discountPercentage <= 0 || discountPercentage > 100) {
+            request.setAttribute("errorMessage", "Discount percentage must be between 0.01 and 100!");
             request.getRequestDispatcher("/admin/promotion-form.jsp").forward(request, response);
             return;
         }
         
-        // Validate dates
-        Date startDate, endDate;
-        try {
-            startDate = DATE_FORMAT.parse(startDateStr);
-            endDate = DATE_FORMAT.parse(endDateStr);
-            
-            // Check if start date is in the past
-            Date now = new Date();
-            if (startDate.before(now)) {
-                request.setAttribute("errorMessage", "Start date cannot be in the past!");
-                request.getRequestDispatcher("/admin/promotion-form.jsp").forward(request, response);
-                return;
-            }
-            
-            if (endDate.before(startDate)) {
-                request.setAttribute("errorMessage", "End date must be after start date!");
-                request.getRequestDispatcher("/admin/promotion-form.jsp").forward(request, response);
-                return;
-            }
-        } catch (ParseException e) {
-            request.setAttribute("errorMessage", "Invalid date format!");
+        if (endDate.before(startDate)) {
+            request.setAttribute("errorMessage", "End date must be after start date!");
             request.getRequestDispatcher("/admin/promotion-form.jsp").forward(request, response);
             return;
         }
@@ -416,80 +315,27 @@ public class AdminPromotionController extends HttpServlet {
             throws ServletException, IOException, SQLException, ClassNotFoundException, ParseException {
         
         // Get parameters from the form
-        String idStr = request.getParameter("id");
+        int id = Integer.parseInt(request.getParameter("id"));
         String title = request.getParameter("title");
-        String discountStr = request.getParameter("discountPercentage");
-        String startDateStr = request.getParameter("startDate");
-        String endDateStr = request.getParameter("endDate");
+        double discountPercentage = Double.parseDouble(request.getParameter("discountPercentage"));
+        Date startDate = DATE_FORMAT.parse(request.getParameter("startDate"));
+        Date endDate = DATE_FORMAT.parse(request.getParameter("endDate"));
         
-        // Set parameters back to the request for preserving input values
-        request.setAttribute("param", request.getParameterMap());
-        
-        // Get ID
-        int id;
-        try {
-            id = Integer.parseInt(idStr);
-        } catch (NumberFormatException e) {
-            request.setAttribute("errorMessage", "Invalid promotion ID!");
-            request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
-            return;
-        }
-        
-        // Get the existing promotion
-        Promotion existingPromotion = promotionDAO.getPromotionById(id);
-        if (existingPromotion == null) {
-            request.setAttribute("errorMessage", "Promotion not found!");
-            request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
-            return;
-        }
-        
-        // Set the existing promotion back to request for form
-        request.setAttribute("promotion", existingPromotion);
-        
-        // Basic validation
+        // Validate data
         if (title == null || title.trim().isEmpty()) {
             request.setAttribute("errorMessage", "Title is required!");
             request.getRequestDispatcher("/admin/promotion-form.jsp").forward(request, response);
             return;
         }
         
-        // Validate discount percentage
-        double discountPercentage;
-        try {
-            discountPercentage = Double.parseDouble(discountStr);
-            if (discountPercentage <= 0 || discountPercentage > 100) {
-                request.setAttribute("errorMessage", "Discount percentage must be between 0.01 and 100!");
-                request.getRequestDispatcher("/admin/promotion-form.jsp").forward(request, response);
-                return;
-            }
-        } catch (NumberFormatException e) {
-            request.setAttribute("errorMessage", "Invalid discount percentage format!");
+        if (discountPercentage <= 0 || discountPercentage > 100) {
+            request.setAttribute("errorMessage", "Discount percentage must be between 0.01 and 100!");
             request.getRequestDispatcher("/admin/promotion-form.jsp").forward(request, response);
             return;
         }
         
-        // Validate dates
-        Date startDate, endDate;
-        try {
-            startDate = DATE_FORMAT.parse(startDateStr);
-            endDate = DATE_FORMAT.parse(endDateStr);
-            
-            // Check if start date is in the past - Only if it's different from the existing start date
-            Date existingStartDate = new Date(existingPromotion.getStartDate().getTime());
-            Date now = new Date();
-            if (!startDateStr.equals(DATE_FORMAT.format(existingStartDate)) && startDate.before(now)) {
-                request.setAttribute("errorMessage", "Start date cannot be in the past!");
-                request.getRequestDispatcher("/admin/promotion-form.jsp").forward(request, response);
-                return;
-            }
-            
-            if (endDate.before(startDate)) {
-                request.setAttribute("errorMessage", "End date must be after start date!");
-                request.getRequestDispatcher("/admin/promotion-form.jsp").forward(request, response);
-                return;
-            }
-        } catch (ParseException e) {
-            request.setAttribute("errorMessage", "Invalid date format!");
+        if (endDate.before(startDate)) {
+            request.setAttribute("errorMessage", "End date must be after start date!");
             request.getRequestDispatcher("/admin/promotion-form.jsp").forward(request, response);
             return;
         }
@@ -497,10 +343,12 @@ public class AdminPromotionController extends HttpServlet {
         // Check if promotion is linked to any tours
         boolean isLinked = promotionDAO.isPromotionLinkedToTours(id);
         
-        if (isLinked) {
-            request.setAttribute("errorMessage", "Cannot update a promotion that is linked to tours!");
-            request.setAttribute("isLinked", true);
-            request.getRequestDispatcher("/admin/promotion-form.jsp").forward(request, response);
+        // Get the existing promotion
+        Promotion existingPromotion = promotionDAO.getPromotionById(id);
+        
+        if (existingPromotion == null) {
+            request.setAttribute("errorMessage", "Promotion not found!");
+            request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
             return;
         }
         
@@ -565,31 +413,6 @@ public class AdminPromotionController extends HttpServlet {
         } else {
             request.setAttribute("errorMessage", "Failed to unlink tour!");
             request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
-        }
-    }
-
-    /**
-     * API endpoint to check if a promotion is linked to any tours
-     */
-    private void checkPromotionLinked(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        
-        try {
-            int id = Integer.parseInt(request.getParameter("id"));
-            boolean isLinked = promotionDAO.isPromotionLinkedToTours(id);
-            
-            String jsonResponse = "{\"isLinked\": " + isLinked + "}";
-            response.getWriter().write(jsonResponse);
-            
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("{\"error\": \"Invalid promotion ID\"}");
-        } catch (SQLException | ClassNotFoundException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("{\"error\": \"Database error\"}");
         }
     }
 } 

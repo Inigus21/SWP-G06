@@ -12,7 +12,6 @@ public class Promotion {
     private Timestamp createdDate;
     private Timestamp deletedDate;
     private boolean isDelete;
-    private boolean hasLinkedTours;
     
     // Constructors
     public Promotion() {
@@ -89,14 +88,6 @@ public class Promotion {
     
     public void setIsDelete(boolean isDelete) {
         this.isDelete = isDelete;
-    }
-    
-    public boolean isHasLinkedTours() {
-        return hasLinkedTours;
-    }
-    
-    public void setHasLinkedTours(boolean hasLinkedTours) {
-        this.hasLinkedTours = hasLinkedTours;
     }
     
     // Helper methods

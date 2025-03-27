@@ -22,7 +22,6 @@
     // Make formatter available in EL
     pageContext.setAttribute("currencyFormatter", currencyFormatter);
 %>
-
 <jsp:include page="layout/header.jsp">
     <jsp:param name="active" value="bookings"/>
 </jsp:include>
@@ -43,7 +42,7 @@
                 </div>
                 <% session.removeAttribute("successMessage"); %>
             </c:if>
-            
+
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">All Bookings</h6>
@@ -52,7 +51,7 @@
                     <form id="filterForm" action="${pageContext.request.contextPath}/admin" method="get">
                         <input type="hidden" name="action" value="bookings">
                         <input type="hidden" name="page" value="1">
-                        
+
                         <div class="row mb-3">
                             <div class="col-md-3 mb-2">
                                 <div class="input-group">
@@ -65,6 +64,7 @@
                             <div class="col-md-3 mb-2">
                                 <select id="statusFilter" name="status" class="form-select" onchange="document.getElementById('filterForm').submit();">
                                     <option value="">Tất cả trạng thái</option>
+
                                     <option value="Đã thanh toán" ${param.status == 'Đã thanh toán' ? 'selected' : ''}>Đã thanh toán</option>
                                     <option value="Đã duyệt" ${param.status == 'Đã duyệt' ? 'selected' : ''}>Đã duyệt</option>
                                     <option value="Đã hủy" ${param.status == 'Đã hủy' ? 'selected' : ''}>Đã hủy</option>
@@ -85,7 +85,7 @@
                             </div>
                         </div>
                     </form>
-                    
+
                     <div class="table-responsive">
                         <table class="table table-bordered table-hover" id="bookingsTable" width="100%" cellspacing="0">
                             <thead>
@@ -110,7 +110,7 @@
                                         <c:set var="shouldUpdateToComplete" value="true" />
                                         <%-- Auto update completed tours logic would be in the controller/servlet --%>
                                     </c:if>
-                                    
+
                                     <tr>
                                         <td>${booking.id}</td>
                                         <td>${booking.user.fullName}</td>
@@ -150,7 +150,7 @@
                                                     <span class="badge bg-secondary">${booking.status}</span>
                                                 </c:otherwise>
                                             </c:choose>
-                                            
+
                                             <c:if test="${shouldUpdateToComplete == true}">
                                                 <span class="badge bg-warning ms-1">
                                                     <i class="fas fa-exclamation-triangle"></i> Nên cập nhật
@@ -162,7 +162,7 @@
                                                 <a href="${pageContext.request.contextPath}/admin/bookings/view?id=${booking.id}" class="btn btn-info btn-sm" data-bs-toggle="tooltip" title="View Details">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                
+
                                                 <c:choose>
                                                     <c:when test="${booking.status == 'Đã thanh toán'}">
                                                         <%-- For "Đã thanh toán" status, show approve/reject buttons --%>
@@ -202,7 +202,6 @@
                                 </c:forEach>
                             </tbody>
                         </table>
-                        
                         <!-- Reject Booking Modal -->
                         <div class="modal fade" id="rejectBookingModal" tabindex="-1" aria-labelledby="rejectBookingModalLabel" aria-hidden="true">
                             <div class="modal-dialog">
@@ -228,14 +227,14 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Pagination -->
                         <c:if test="${totalBookings > 0}">
                             <c:set var="currentPage" value="${currentPage != null ? currentPage : 1}" />
                             <c:set var="itemsPerPage" value="${itemsPerPage != null ? itemsPerPage : 10}" />
                             <c:set var="totalItems" value="${totalBookings}" />
                             <c:set var="totalPages" value="${totalPages != null ? totalPages : 1}" />
-                            
+
                             <!-- Build query string for pagination -->
                             <c:set var="queryString" value="action=bookings" />
                             <c:if test="${not empty param.search}">
@@ -250,10 +249,10 @@
                             <c:if test="${not empty param.sort}">
                                 <c:set var="queryString" value="${queryString}&sort=${param.sort}" />
                             </c:if>
-                            
+
                             <!-- Hidden field to store current action for JS -->
                             <input type="hidden" name="current-action" value="bookings">
-                            
+
                             <jsp:include page="components/pagination.jsp">
                                 <jsp:param name="currentPage" value="${currentPage}" />
                                 <jsp:param name="itemsPerPage" value="${itemsPerPage}" />

@@ -25,69 +25,6 @@
         </div>
     </c:if>
     
-    <!-- Search Form -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold text-primary">Search Promotions</h6>
-            <button class="btn btn-sm btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse" aria-expanded="false" aria-controls="searchCollapse">
-                <i class="fas fa-chevron-down"></i>
-            </button>
-        </div>
-        <div class="collapse" id="searchCollapse">
-            <div class="card-body">
-                <form action="${pageContext.request.contextPath}/admin/promotions" method="GET" class="row g-3">
-                    <!-- Title Search -->
-                    <div class="col-md-6">
-                        <label for="title" class="form-label">Title</label>
-                        <input type="text" class="form-control" id="title" name="title" value="${title}" placeholder="Search by title">
-                    </div>
-                    
-                    <!-- Discount Range -->
-                    <div class="col-md-6">
-                        <label class="form-label">Discount Percentage Range</label>
-                        <div class="row g-2">
-                            <div class="col">
-                                <div class="input-group">
-                                    <input type="number" class="form-control" name="minDiscount" value="${minDiscount}" min="0" max="100" step="0.1" placeholder="Min">
-                                    <span class="input-group-text">%</span>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="input-group">
-                                    <input type="number" class="form-control" name="maxDiscount" value="${maxDiscount}" min="0" max="100" step="0.1" placeholder="Max">
-                                    <span class="input-group-text">%</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Date Range -->
-                    <div class="col-md-6">
-                        <label class="form-label">Date Range</label>
-                        <div class="row g-2">
-                            <div class="col">
-                                <input type="datetime-local" class="form-control" name="startDateFrom" value="${startDateFrom}" placeholder="From">
-                            </div>
-                            <div class="col">
-                                <input type="datetime-local" class="form-control" name="endDateTo" value="${endDateTo}" placeholder="To">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Search Buttons -->
-                    <div class="col-12 mt-3">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-search me-2"></i>Search
-                        </button>
-                        <a href="${pageContext.request.contextPath}/admin/promotions" class="btn btn-secondary ms-2">
-                            <i class="fas fa-undo me-2"></i>Reset
-                        </a>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    
     <!-- Promotion Table -->
     <div class="card shadow mb-4">
         <div class="card-header py-3">
@@ -103,7 +40,7 @@
                             <th>Discount</th>
                             <th>Start Date</th>
                             <th>End Date</th>
-                            <th>Linked Tours</th>
+                            <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -116,14 +53,9 @@
                                 <td><fmt:formatDate value="${promotion.startDate}" pattern="dd/MM/yyyy HH:mm" /></td>
                                 <td><fmt:formatDate value="${promotion.endDate}" pattern="dd/MM/yyyy HH:mm" /></td>
                                 <td>
-                                    <c:choose>
-                                        <c:when test="${promotion.hasLinkedTours}">
-                                            <span class="badge bg-primary"><i class="fas fa-link me-1"></i> Linked</span>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <span class="badge bg-secondary">None</span>
-                                        </c:otherwise>
-                                    </c:choose>
+                                    <span class="badge ${promotion.status eq 'Active' ? 'bg-success' : promotion.status eq 'Upcoming' ? 'bg-primary' : 'bg-secondary'}">
+                                        ${promotion.status}
+                                    </span>
                                 </td>
                                 <td>
                                     <div class="d-flex gap-2">
@@ -133,8 +65,8 @@
                                         <a href="${pageContext.request.contextPath}/admin/promotions/edit?id=${promotion.id}" class="btn btn-sm btn-warning text-white" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <a href="${pageContext.request.contextPath}/admin/promotions/link?id=${promotion.id}" class="btn btn-sm btn-primary" title="Manage Tour Links">
-                                            <i class="fas fa-link"></i> Links
+                                        <a href="${pageContext.request.contextPath}/admin/promotions/link?id=${promotion.id}" class="btn btn-sm btn-primary" title="Link to Tours">
+                                            <i class="fas fa-link"></i>
                                         </a>
                                         <button class="btn btn-sm btn-danger" onclick="confirmDelete(${promotion.id}, '${promotion.title}')" title="Delete">
                                             <i class="fas fa-trash"></i>
@@ -147,7 +79,7 @@
                         <!-- Display message if no promotions found -->
                         <c:if test="${empty promotions}">
                             <tr>
-                                <td colspan="6" class="text-center py-4">No promotions found.</td>
+                                <td colspan="7" class="text-center py-4">No promotions found.</td>
                             </tr>
                         </c:if>
                     </tbody>
@@ -173,11 +105,6 @@
             <div class="modal-body">
                 <p>Are you sure you want to delete the promotion: <span id="promotionTitle"></span>?</p>
                 <p class="text-danger">This action cannot be undone.</p>
-                <div class="alert alert-warning mt-3">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>Note:</strong> Promotions linked to tours cannot be deleted. 
-                    You must first remove all tour links before deleting a promotion.
-                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -189,54 +116,19 @@
 
 <script>
     function confirmDelete(id, title) {
-        // First check if promotion is linked to any tours
-        fetch('${pageContext.request.contextPath}/admin/api/promotion-linked?id=' + id)
-            .then(function(response) {
-                return response.json();
-            })
-            .then(function(data) {
-                if (data.isLinked) {
-                    // Show error message as toast/alert if promotion is linked to tours
-                    var alertHtml = '<div class="alert alert-danger alert-dismissible fade show" role="alert">';
-                    alertHtml += 'Cannot delete promotion "' + title + '" because it is linked to one or more tours!';
-                    alertHtml += '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
-                    alertHtml += '</div>';
-                    document.querySelector('.container-fluid').insertAdjacentHTML('afterbegin', alertHtml);
-                    
-                    // Auto close alert after 5 seconds
-                    setTimeout(function() {
-                        var alerts = document.querySelectorAll('.alert');
-                        alerts.forEach(function(alert) {
-                            var bsAlert = new bootstrap.Alert(alert);
-                            bsAlert.close();
-                        });
-                    }, 5000);
-                } else {
-                    // If not linked, show the delete confirmation modal
-                    document.getElementById('promotionTitle').textContent = title;
-                    document.getElementById('confirmDeleteBtn').href = '${pageContext.request.contextPath}/admin/promotions?action=delete&id=' + id;
-                    
-                    var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-                    deleteModal.show();
-                }
-            })
-            .catch(function(error) {
-                console.error('Error checking promotion status:', error);
-                // Fallback to server-side validation in case of error
-                document.getElementById('promotionTitle').textContent = title;
-                document.getElementById('confirmDeleteBtn').href = '${pageContext.request.contextPath}/admin/promotions?action=delete&id=' + id;
-                
-                var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-                deleteModal.show();
-            });
+        document.getElementById('promotionTitle').textContent = title;
+        document.getElementById('confirmDeleteBtn').href = '${pageContext.request.contextPath}/admin/promotions?action=delete&id=' + id;
+        
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        deleteModal.show();
     }
     
     // Auto close alert after 5 seconds
     window.addEventListener('load', function() {
         setTimeout(function() {
-            var alerts = document.querySelectorAll('.alert');
+            const alerts = document.querySelectorAll('.alert');
             alerts.forEach(function(alert) {
-                var bsAlert = new bootstrap.Alert(alert);
+                const bsAlert = new bootstrap.Alert(alert);
                 bsAlert.close();
             });
         }, 5000);
