@@ -270,123 +270,51 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         // Initialize tooltips
         const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
         tooltipTriggerList.forEach(tooltipTriggerEl => {
             new bootstrap.Tooltip(tooltipTriggerEl);
         });
-
-        // Search functionality
-        document.getElementById('searchButton').addEventListener('click', function () {
-            applyAllFilters();
-        });
-
-        document.getElementById('searchInput').addEventListener('keyup', function (e) {
+        
+        // Enter key in search box submits the form
+        document.getElementById('searchInput').addEventListener('keyup', function(e) {
             if (e.key === 'Enter') {
-                applyAllFilters();
+                document.getElementById('filterForm').submit();
             }
         });
-
-        // Status filter
-        document.getElementById('statusFilter').addEventListener('change', function () {
-            applyAllFilters();
-        });
-
-        // Date filter
-        document.getElementById('dateFilter').addEventListener('change', function () {
-            applyAllFilters();
-        });
-
-        // Sort order
-        document.getElementById('sortOrder').addEventListener('change', function () {
-            applyAllFilters();
-        });
-
+        
         // Approve Booking Button
         const approveBookingBtns = document.querySelectorAll('.approve-booking-btn');
         approveBookingBtns.forEach(btn => {
-            btn.addEventListener('click', function () {
+            btn.addEventListener('click', function() {
                 const bookingId = this.getAttribute('data-booking-id');
                 if (confirm('Are you sure you want to approve this booking?')) {
                     // Submit form to approve booking
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.action = '${pageContext.request.contextPath}/admin/bookings/approve';
-
+                    
                     const bookingIdInput = document.createElement('input');
                     bookingIdInput.type = 'hidden';
                     bookingIdInput.name = 'bookingId';
                     bookingIdInput.value = bookingId;
-
+                    
                     form.appendChild(bookingIdInput);
                     document.body.appendChild(form);
                     form.submit();
                 }
             });
         });
-
+        
         // Reject Booking Button
         const rejectBookingBtns = document.querySelectorAll('.reject-booking-btn');
         rejectBookingBtns.forEach(btn => {
-            btn.addEventListener('click', function () {
+            btn.addEventListener('click', function() {
                 const bookingId = this.getAttribute('data-booking-id');
                 document.getElementById('rejectBookingId').value = bookingId;
             });
         });
-
-        // Unified filter function that preserves all filter states
-        function applyAllFilters() {
-            // Start with base URL
-            let url = "${pageContext.request.contextPath}/admin?action=bookings";
-
-            // Add search parameter if exists
-            const searchInput = document.getElementById('searchInput').value;
-            if (searchInput && searchInput.trim() !== '') {
-                url += "&search=" + encodeURIComponent(searchInput.trim());
-            }
-
-            // Add status parameter if selected
-            const statusFilter = document.getElementById('statusFilter').value;
-            if (statusFilter && statusFilter !== '') {
-                url += "&status=" + encodeURIComponent(statusFilter);
-            }
-
-            // Add date parameter if selected
-            const dateFilter = document.getElementById('dateFilter').value;
-            if (dateFilter && dateFilter !== '') {
-                url += "&date=" + encodeURIComponent(dateFilter);
-            }
-
-            // Add sort parameter
-            const sortOrder = document.getElementById('sortOrder').value;
-            if (sortOrder && sortOrder !== '') {
-                url += "&sort=" + encodeURIComponent(sortOrder);
-            }
-
-            // Reset to page 1 when filtering
-            url += "&page=1";
-
-            // Navigate to the filtered URL
-            window.location.href = url;
-        }
-
-        // Apply client-side status filtering if needed
-        // This is useful if we need to do additional filtering that wasn't handled server-side
-        const statusParam = "${param.status}";
-        if (statusParam && statusParam !== '') {
-            const bookingRows = document.querySelectorAll("#bookingsTable tbody tr");
-            bookingRows.forEach(row => {
-                const statusCell = row.querySelector("td:nth-child(9)"); // Status is the 9th column
-                const statusText = statusCell.textContent.trim();
-
-                if (statusText.includes(statusParam)) {
-                    row.style.display = "";
-                } else {
-                    row.style.display = "none";
-                }
-            });
-        }
     });
 </script>
 
