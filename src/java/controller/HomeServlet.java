@@ -105,7 +105,7 @@ public class HomeServlet extends HttpServlet {
             // Get last-minute deals (tours with special promotions within the next 7 days)
             List<Tour> lastMinuteDeals = null;
             try {
-                lastMinuteDeals = tourDAO.getLastMinuteDeals(6);
+                lastMinuteDeals = tourDAO.getLastMinuteDeals1(3);
                 getServletContext().log("HomeServlet: Retrieved " + (lastMinuteDeals != null ? lastMinuteDeals.size() : 0) + " last-minute deals");
             } catch (Exception e) {
                 getServletContext().log("HomeServlet: Error getting last-minute deals: " + e.getMessage());

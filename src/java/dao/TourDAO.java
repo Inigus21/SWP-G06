@@ -1280,6 +1280,54 @@ public class TourDAO {
         }
         return tours;
     }
+    
+    /**
+     * Get tours with last-minute deals (special promotions with close departure dates)
+     * @param limit Maximum number of deals to return
+     * @return List of tours with last-minute deals
+     * @throws SQLException If a database access error occurs
+     * @throws ClassNotFoundException If the database driver class is not found
+     */
+    public List<Tour> getLastMinuteDeals1(int limit) throws SQLException, ClassNotFoundException {
+        List<Tour> tours = new ArrayList<>();
+        String sql = "SELECT DISTINCT t.id, t.name, t.img, t.duration, t.price_adult, c.name as departure_city, " +
+             "c2.name as destination_city, MAX(tr.available_slot) as available_slot, " +
+             "MAX(p.discount_percentage) as discount_percentage " +
+             "FROM tours t " +
+             "JOIN trip tr ON t.id = tr.tour_id " +
+             "JOIN city c ON t.departure_location_id = c.id " +
+             "JOIN city c2 ON tr.destination_city_id = c2.id " +
+             "JOIN tour_promotion tp ON t.id = tp.tour_id " +
+             "JOIN promotion p ON tp.promotion_id = p.id " +
+             "WHERE tr.departure_date >= GETDATE() " +
+             "AND tr.departure_date <= DATEADD(day, 100, GETDATE()) " + 
+             "AND tr.available_slot > 0 " +
+             "AND p.start_date <= GETDATE() " +
+             "AND p.end_date >= GETDATE() " +
+             "GROUP BY t.id, t.name, t.img, t.duration, t.price_adult, c.name, c2.name " +
+             "ORDER BY MAX(p.discount_percentage) DESC " +
+             "OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
+
+        try (Connection conn = DBContext.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Tour tour = new Tour();
+                tour.setId(rs.getInt("id"));
+                tour.setName(rs.getString("name"));
+                tour.setImg(rs.getString("img"));
+                tour.setDuration(rs.getString("duration"));
+                tour.setPriceAdult(rs.getDouble("price_adult"));
+                tour.setDepartureCity(rs.getString("departure_city"));
+                tour.setDestinationCity(rs.getString("destination_city"));
+                tour.setAvailableSlot(rs.getInt("available_slot"));
+                tour.setDiscountPercentage(rs.getDouble("discount_percentage"));
+                tours.add(tour);
+            }
+        }
+        return tours;
+    }
 
     /**
      * Get tours with active promotions
