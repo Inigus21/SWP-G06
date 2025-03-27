@@ -527,6 +527,7 @@ public class TourDAO {
         List<Tour> tours = new ArrayList<>();
         
         // SQL Server doesn't support parameterized TOP, so we need to use a different approach
+        //String sql = "SELECT DISTINCT t.id, t.name, t.img, t.duration, t.price_adult, t.price_children, " +
         String sql = "SELECT DISTINCT t.id, t.name, t.img, t.duration, t.price_adult, t.price_children, t.max_capacity, " +
                     "c.name AS departure_city " +
                     "FROM tours t " +
@@ -551,6 +552,8 @@ public class TourDAO {
                 tour.setDuration(rs.getString("duration"));
                 tour.setPriceAdult(rs.getDouble("price_adult"));
                 tour.setPriceChildren(rs.getDouble("price_children"));
+                //tour.setDepartureCity(rs.getString("departure_city"));
+                //tour.setAvailableSlot(20); // Default available slots if not in query
                 tour.setAvailableSlot(rs.getInt("max_capacity")); // Default available slots if not in query
                 tour.setDepartureCity(rs.getString("departure_city"));
                 
