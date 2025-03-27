@@ -351,30 +351,30 @@
 
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         // Initialize tooltips
         const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
         tooltipTriggerList.forEach(tooltipTriggerEl => {
             new bootstrap.Tooltip(tooltipTriggerEl);
         });
-
+        
         // Approve Booking Button
         const approveBookingBtn = document.getElementById('approveBookingBtn');
         if (approveBookingBtn) {
-            approveBookingBtn.addEventListener('click', function () {
+            approveBookingBtn.addEventListener('click', function() {
                 if (confirm('Are you sure you want to approve this booking?')) {
                     // Submit form to approve booking
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.action = '${pageContext.request.contextPath}/admin/bookings/approve';
-
+                    
                     const bookingIdInput = document.createElement('input');
                     bookingIdInput.type = 'hidden';
                     bookingIdInput.name = 'bookingId';
                     bookingIdInput.value = '${booking.id}';
-
+                    
                     console.log('Submitting approval for booking ID: ' + bookingIdInput.value);
-
+                    
                     form.appendChild(bookingIdInput);
                     document.body.appendChild(form);
                     form.submit();
