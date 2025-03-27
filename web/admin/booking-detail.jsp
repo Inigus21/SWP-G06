@@ -1,7 +1,26 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Date" %>
+<%@ page import="java.text.NumberFormat" %>
+<%@ page import="java.text.DecimalFormat" %>
+<%@ page import="java.text.DecimalFormatSymbols" %>
+<%@ page import="java.util.Locale" %>
+<%@ page import="java.util.Currency" %>
+
+<%
+    // Format currency
+    NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+    currencyFormatter.setCurrency(Currency.getInstance("VND"));
+    DecimalFormatSymbols dfs = new DecimalFormatSymbols(new Locale("vi", "VN"));
+    dfs.setCurrencySymbol("VNĐ");
+    ((DecimalFormat) currencyFormatter).setDecimalFormatSymbols(dfs);
+    
+    // Make formatter available in EL
+    pageContext.setAttribute("currencyFormatter", currencyFormatter);
+%>
+
 <jsp:include page="layout/header.jsp">
     <jsp:param name="active" value="bookings"/>
 </jsp:include>
@@ -25,7 +44,7 @@
                 </div>
                 <% session.removeAttribute("successMessage"); %>
             </c:if>
-            
+
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">Booking #${booking.id}</h6>
@@ -46,7 +65,7 @@
                                }
                            }
                         %>
-                        
+
                         <c:choose>
                             <c:when test="${booking.status eq 'Đã thanh toán'}">
                                 <!-- For "Đã thanh toán" status, show approve/reject buttons -->
@@ -67,10 +86,8 @@
                                 </form>
                             </c:when>
                         </c:choose>
-                        
-                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteBookingModal">
-                            <i class="fas fa-trash me-1"></i> Delete
-                        </button>
+
+
                     </div>
                 </div>
                 <div class="card-body">
@@ -90,9 +107,7 @@
                                             <th>Status</th>
                                             <td>
                                                 <c:choose>
-                                                    <c:when test="${booking.status eq 'Chờ thanh toán'}">
-                                                        <span class="badge bg-warning">Chờ thanh toán</span>
-                                                    </c:when>
+
                                                     <c:when test="${booking.status eq 'Đã thanh toán'}">
                                                         <span class="badge bg-primary">Đã thanh toán</span>
                                                     </c:when>
@@ -112,7 +127,7 @@
                                                         <span class="badge bg-secondary">${booking.status != null ? booking.status : 'Unknown'}</span>
                                                     </c:otherwise>
                                                 </c:choose>
-                                                
+
                                                 <c:if test="${shouldMarkComplete}">
                                                     <span class="badge bg-warning ms-1" title="Tour has completed but status not updated">
                                                         <i class="fas fa-exclamation-triangle"></i> Needs Update
@@ -141,14 +156,14 @@
                                                         <c:set var="totalAmount" value="${totalAmount + transaction.amount}" />
                                                     </c:if>
                                                 </c:forEach>
-                                                ${totalAmount} VNĐ
+                                                ${currencyFormatter.format(totalAmount)}
                                             </td>
                                         </tr>
                                     </table>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="col-md-6">
                             <div class="card mb-4">
                                 <div class="card-header">
@@ -177,7 +192,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-12">
                             <div class="card mb-4">
@@ -217,11 +232,11 @@
                                                 </tr>
                                                 <tr>
                                                     <th>Adult Price</th>
-                                                    <td>${tour.priceAdult} VNĐ</td>
+                                                    <td>${currencyFormatter.format(tour.priceAdult)}</td>
                                                 </tr>
                                                 <tr>
                                                     <th>Child Price</th>
-                                                    <td>${tour.priceChildren} VNĐ</td>
+                                                    <td>${currencyFormatter.format(tour.priceChildren)}</td>
                                                 </tr>
                                             </table>
                                         </div>
@@ -230,7 +245,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-12">
                             <div class="card mb-4">
@@ -247,34 +262,51 @@
                                                     <th>Amount</th>
                                                     <th>Description</th>
                                                     <th>Date</th>
-                                                    <th>Status</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <c:forEach var="transaction" items="${transactions}">
-                                                    <tr>
-                                                        <td>${transaction.id}</td>
-                                                        <td>${transaction.transactionType}</td>
-                                                        <td>${transaction.amount} VNĐ</td>
-                                                        <td>${transaction.description}</td>
-                                                        <td>${transaction.transactionDate}</td>
-                                                        <td>
-                                                            <c:choose>
-                                                                <c:when test="${transaction.status == 'Completed'}">
-                                                                    <span class="badge bg-success">Completed</span>
-                                                                </c:when>
-                                                                <c:when test="${transaction.status == 'Pending'}">
-                                                                    <span class="badge bg-warning">Pending</span>
-                                                                </c:when>
-                                                                <c:when test="${transaction.status == 'Failed'}">
-                                                                    <span class="badge bg-danger">Failed</span>
-                                                                </c:when>
-                                                                <c:otherwise>
-                                                                    <span class="badge bg-secondary">${transaction.status}</span>
-                                                                </c:otherwise>
-                                                            </c:choose>
-                                                        </td>
-                                                    </tr>
+                                                    <c:if test="${transaction.amount > 0}">
+                                                        <tr>
+                                                            <td>${transaction.id}</td>
+                                                            <td>${transaction.transactionType}</td>
+                                                            <td>${currencyFormatter.format(transaction.amount)}</td>
+                                                            <td>${transaction.description}</td>
+                                                            <td>${transaction.transactionDate}</td>
+                                                        </tr>
+                                                    </c:if>
+                                                </c:forEach>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h6 class="m-0 font-weight-bold text-primary">Status History</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>Type</th>
+                                                    <th>Description</th>
+                                                    <th>Date</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <c:forEach var="transaction" items="${transactions}">
+                                                    <c:if test="${transaction.amount == 0}">
+                                                        <tr>
+                                                            <td>${transaction.id}</td>
+                                                            <td>${transaction.transactionType}</td>
+                                                            <td>${transaction.description}</td>
+                                                            <td>${transaction.transactionDate}</td>
+                                                        </tr>
+                                                    </c:if>
                                                 </c:forEach>
                                             </tbody>
                                         </table>
@@ -288,6 +320,7 @@
         </div>
     </div>
 </div>
+
 
 <!-- Reject Booking Modal -->
 <div class="modal fade" id="rejectBookingModal" tabindex="-1" aria-labelledby="rejectBookingModalLabel" aria-hidden="true">
@@ -315,24 +348,7 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteBookingModal" tabindex="-1" aria-labelledby="deleteBookingModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteBookingModalLabel">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to delete booking #${booking.id}? This action cannot be undone.
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <a href="${pageContext.request.contextPath}/admin/bookings/delete?id=${booking.id}" class="btn btn-danger">Delete</a>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
