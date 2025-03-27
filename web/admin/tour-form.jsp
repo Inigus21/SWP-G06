@@ -1,9 +1,3 @@
-<%-- 
-    Document   : tour-form
-    Created on : Mar 9, 2025, 11:25:00 PM
-    Author     : Nhai
---%>
-
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <jsp:include page="layout/header.jsp">
@@ -25,15 +19,15 @@
             <h6 class="m-0 font-weight-bold text-primary">Tour Information</h6>
         </div>
         <div class="card-body">
-            <form action="${pageContext.request.contextPath}/admin/tours" method="post" class="needs-validation" novalidate>
-                <input type="hidden" name="action" value="create">
+            <form action="${pageContext.request.contextPath}/admin/tours/create" method="post" class="needs-validation" novalidate>
+                <input type="hidden" name="id" value="0">
                 
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="name" class="form-label">Tour Name</label>
-                            <input type="text" class="form-control" id="name" name="name" required>
-                            <div class="invalid-feedback">Please provide a tour name.</div>
+                            <input type="text" class="form-control" id="name" name="name" required pattern=".*\S+.*" title="Tour name cannot be only spaces">
+                            <div class="invalid-feedback">Please provide a valid tour name (cannot be only spaces).</div>
                         </div>
                         
                         <div class="mb-3">
@@ -48,9 +42,9 @@
                         </div>
                         
                         <div class="mb-3">
-                            <label for="departureLocationId" class="form-label">Departure Location</label>
+                            <label for="departureLocationId" class="form-label">Destination Location</label>
                             <select class="form-select" id="departureLocationId" name="departureLocationId" required>
-                                <option value="" selected disabled>Select a departure city</option>
+                                <option value="" selected disabled>Select a destination city</option>
                                 <c:forEach var="city" items="${cities}">
                                     <option value="${city.id}">${city.name}</option>
                                 </c:forEach>
@@ -60,8 +54,13 @@
                         
                         <div class="mb-3">
                             <label for="region" class="form-label">Region</label>
-                            <input type="text" class="form-control" id="region" name="region" required>
-                            <div class="invalid-feedback">Please provide a region.</div>
+                            <select class="form-select" id="region" name="region" required>
+                                <option value="" selected disabled>Select a region</option>
+                                <option value="Bắc">Bắc</option>
+                                <option value="Trung">Trung</option>
+                                <option value="Nam">Nam</option>
+                            </select>
+                            <div class="invalid-feedback">Please select a region.</div>
                         </div>
                     </div>
                     
@@ -135,8 +134,8 @@
                         
                         <div class="mb-3">
                             <label for="sightseeing" class="form-label">Sightseeing Highlights</label>
-                            <textarea class="form-control" id="sightseeing" name="sightseeing" rows="3" required></textarea>
-                            <div class="invalid-feedback">Please provide sightseeing information.</div>
+                            <textarea class="form-control" id="sightseeing" name="sightseeing" rows="3" required pattern=".*\S+.*"></textarea>
+                            <div class="invalid-feedback">Please provide valid sightseeing information (cannot be only spaces).</div>
                         </div>
                     </div>
                 </div>

@@ -186,7 +186,7 @@ public class TripDAO {
     public List<Trip> getTripsByTourId(int tourId) {
         List<Trip> trips = new ArrayList<>();
         // Only select columns we're sure exist based on the database diagram
-        String sql = "SELECT id, tour_id, departure_date, return_date, start_time, end_time, available_slot FROM trip WHERE tour_id = ? ORDER BY departure_date ASC";
+        String sql = "SELECT id, tour_id, departure_city_id, destination_city_id, departure_date, return_date, start_time, end_time, available_slot, is_delete FROM trip WHERE tour_id = ? ORDER BY departure_date ASC";
         
         try (Connection conn = DBContext.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -213,29 +213,41 @@ public class TripDAO {
      */
     public Trip getTripById(int tripId) {
         String sql = "SELECT * FROM trip WHERE id = ? AND is_delete = 0";
+        System.out.println("Fetching trip with ID: " + tripId);
         
         try (Connection conn = DBContext.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setInt(1, tripId);
+            System.out.println("Executing SQL: " + sql.replace("?", String.valueOf(tripId)));
             
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return mapTrip(rs);
+                    Trip trip = mapTrip(rs);
+                    System.out.println("Successfully found trip: " + trip.getId() + 
+                                       ", Tour ID: " + trip.getTourId() + 
+                                       ", Departure Date: " + trip.getDepartureDate() +
+                                       ", Departure City: " + trip.getDepartureCityId() +
+                                       ", Destination City: " + trip.getDestinationCityId());
+                    return trip;
+                } else {
+                    System.out.println("No trip found with ID: " + tripId + " or trip is marked as deleted");
                 }
             }
-        } catch (SQLException | ClassNotFoundException e) {
-            System.out.println("Error getting trip by ID: " + e.getMessage());
+        } catch (SQLException e) {
+            System.out.println("SQL Error getting trip by ID " + tripId + ": " + e.getMessage());
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            System.out.println("Database driver class not found when getting trip by ID " + tripId + ": " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.out.println("Unexpected error getting trip by ID " + tripId + ": " + e.getMessage());
+            e.printStackTrace();
         }
         
         return null;
     }
     
-    /**
-     * Create a new trip
-     * @param trip The trip to create
-     * @return The ID of the created trip, or -1 if an error occurred
-     */
     /**
      * Create a new trip
      * @param trip The trip to create
@@ -481,6 +493,11 @@ public class TripDAO {
         return -1;
     }
     
+    /**
+     * Update a trip
+     * @param trip The trip to update
+     * @return True if successful, false otherwise
+     */
     public boolean updateTrip(Trip trip) {
         // First check if this trip has bookings
         BookingDAO bookingDAO = new BookingDAO();
@@ -489,14 +506,17 @@ public class TripDAO {
             return false;
         }
         
+        // Sử dụng style format 120 (YYYY-MM-DD HH:MM:SS) cho datetime và 108 (HH:MM:SS) cho time
         String sql = "UPDATE trip SET departure_city_id = ?, destination_city_id = ?, tour_id = ?, " +
-                     "departure_date = ?, return_date = ?, start_time = ?, end_time = ?, " +
+                     "departure_date = CONVERT(datetime, ?, 120), return_date = CONVERT(datetime, ?, 120), " +
+                     "start_time = CONVERT(time(7), ?, 108), end_time = CONVERT(time(7), ?, 108), " +
                      "available_slot = ?, is_delete = ? WHERE id = ?";
         
         try (Connection conn = DBContext.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
             // Debug output to verify values being updated
-            System.out.println("Updating trip with the following values:");
+            System.out.println("\n=== Updating trip with the following values ===");
             System.out.println("Trip ID: " + trip.getId());
             System.out.println("Tour ID: " + trip.getTourId());
             System.out.println("Departure City ID: " + trip.getDepartureCityId());
@@ -507,26 +527,179 @@ public class TripDAO {
             System.out.println("End Time: " + trip.getEndTime());
             System.out.println("Available Slots: " + trip.getAvailableSlot());
             System.out.println("Is Delete: " + trip.isIsDelete());
+            System.out.println("=============================================");
             
-            stmt.setInt(1, trip.getDepartureCityId());
-            stmt.setInt(2, trip.getDestinationCityId());
+            // Set city IDs
+            int departureCityId = trip.getDepartureCityId();
+            if (departureCityId <= 0) {
+                System.out.println("WARNING: Using default departure city ID 1");
+                departureCityId = 1;
+            }
+            stmt.setInt(1, departureCityId);
+            
+            int destinationCityId = trip.getDestinationCityId();
+            if (destinationCityId <= 0) {
+                System.out.println("WARNING: Using default destination city ID 1");
+                destinationCityId = 1;
+            }
+            stmt.setInt(2, destinationCityId);
+            
+            // Set tour ID
             stmt.setInt(3, trip.getTourId());
-            stmt.setTimestamp(4, trip.getDepartureDate());
-            stmt.setTimestamp(5, trip.getReturnDate());
-            stmt.setString(6, trip.getStartTime());
-            stmt.setString(7, trip.getEndTime());
+            
+            // Convert dates to string format for SQL Server with time component
+            String departureDate = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(trip.getDepartureDate());
+            // Đảm bảo giờ là 00:00:00
+            if (!departureDate.contains(" ")) {
+                departureDate += " 00:00:00";
+            }
+            stmt.setString(4, departureDate);
+            
+            String returnDate = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(trip.getReturnDate());
+            // Đảm bảo giờ là 00:00:00
+            if (!returnDate.contains(" ")) {
+                returnDate += " 00:00:00";
+            }
+            stmt.setString(5, returnDate);
+            
+            // Format and set start time (HH:MM:SS)
+            String startTime = trip.getStartTime();
+            if (startTime == null || startTime.isEmpty()) {
+                startTime = "00:00:00";
+            } else {
+                // Clean time and ensure format HH:MM:SS
+                if (startTime.matches(".*?(\\d{1,2}:\\d{2}).*")) {
+                    startTime = startTime.replaceAll(".*?(\\d{1,2}:\\d{2}).*", "$1");
+                    // Ensure leading zero for hour if needed
+                    if (startTime.matches("^\\d:\\d{2}$")) {
+                        startTime = "0" + startTime;
+                    }
+                    // Add seconds if missing
+                    if (startTime.matches("^\\d{2}:\\d{2}$")) {
+                        startTime += ":00";
+                    }
+                } else {
+                    startTime = "00:00:00"; // Default if format doesn't match
+                }
+            }
+            System.out.println("Final start time string (HH:MM:SS): " + startTime);
+            stmt.setString(6, startTime);
+            
+            // Format and set end time (HH:MM:SS)
+            String endTime = trip.getEndTime();
+            if (endTime == null || endTime.isEmpty()) {
+                endTime = "23:59:00";
+            } else {
+                // Clean time and ensure format HH:MM:SS
+                if (endTime.matches(".*?(\\d{1,2}:\\d{2}).*")) {
+                    endTime = endTime.replaceAll(".*?(\\d{1,2}:\\d{2}).*", "$1");
+                    // Ensure leading zero for hour if needed
+                    if (endTime.matches("^\\d:\\d{2}$")) {
+                        endTime = "0" + endTime;
+                    }
+                    // Add seconds if missing
+                    if (endTime.matches("^\\d{2}:\\d{2}$")) {
+                        endTime += ":00";
+                    }
+                } else {
+                    endTime = "23:59:00"; // Default if format doesn't match
+                }
+            }
+            System.out.println("Final end time string (HH:MM:SS): " + endTime);
+            stmt.setString(7, endTime);
+            
+            // Set available slots
             stmt.setInt(8, trip.getAvailableSlot());
             stmt.setInt(9, trip.isIsDelete() ? 1 : 0); // Convert boolean to int for SQL Server
             stmt.setInt(10, trip.getId());
             
+            // Log SQL parameters
+            System.out.println("Executing update with:");
+            System.out.println("  departureCityId = " + departureCityId);
+            System.out.println("  destinationCityId = " + destinationCityId);
+            System.out.println("  tourId = " + trip.getTourId());
+            System.out.println("  departureDate = " + departureDate);
+            System.out.println("  returnDate = " + returnDate);
+            System.out.println("  startTime = " + startTime);
+            System.out.println("  endTime = " + endTime);
+            System.out.println("  availableSlot = " + trip.getAvailableSlot());
+            System.out.println("  isDelete = " + trip.isIsDelete());
+            System.out.println("  tripId = " + trip.getId());
+            
+            try {
             int rowsAffected = stmt.executeUpdate();
+                System.out.println("Update result: " + (rowsAffected > 0 ? "Success" : "Failed") + " - Rows affected: " + rowsAffected);
             return rowsAffected > 0;
+            } catch (SQLException e) {
+                System.out.println("SQL Error during update execution: " + e.getMessage());
+                e.printStackTrace();
+                // Thử phương pháp thay thế nếu phương pháp chính bị lỗi
+                return updateTripAlternative(trip);
+            }
         } catch (SQLException | ClassNotFoundException e) {
             System.out.println("Error updating trip: " + e.getMessage());
             e.printStackTrace();
+            // Thử phương pháp thay thế nếu phương pháp chính bị lỗi
+            return updateTripAlternative(trip);
         }
+    }
+    
+    /**
+     * Alternative updateTrip method using a different SQL approach
+     * Used as fallback when the primary method fails
+     */
+    private boolean updateTripAlternative(Trip trip) {
+        System.out.println("Attempting alternative approach to update trip...");
         
+        String sql = "UPDATE trip SET departure_city_id = ?, destination_city_id = ?, tour_id = ?, " +
+                     "departure_date = ?, return_date = ?, start_time = ?, end_time = ?, " +
+                     "available_slot = ?, is_delete = ? WHERE id = ?";
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            // Set cities
+            int departureCityId = trip.getDepartureCityId() <= 0 ? 1 : trip.getDepartureCityId();
+            int destinationCityId = trip.getDestinationCityId() <= 0 ? 1 : trip.getDestinationCityId();
+            stmt.setInt(1, departureCityId);
+            stmt.setInt(2, destinationCityId);
+            stmt.setInt(3, trip.getTourId());
+            
+            // Set timestamps directly
+            stmt.setTimestamp(4, trip.getDepartureDate());
+            stmt.setTimestamp(5, trip.getReturnDate());
+            
+            // Clean and set time strings
+            String startTime = trip.getStartTime();
+            if (startTime == null || startTime.isEmpty()) {
+                startTime = "00:00";
+            } else if (startTime.length() > 8) {
+                startTime = startTime.substring(0, 8); // Limit to 8 chars max
+            }
+            
+            String endTime = trip.getEndTime();
+            if (endTime == null || endTime.isEmpty()) {
+                endTime = "23:59";
+            } else if (endTime.length() > 8) {
+                endTime = endTime.substring(0, 8); // Limit to 8 chars max
+            }
+            
+            stmt.setString(6, startTime);
+            stmt.setString(7, endTime);
+            stmt.setInt(8, trip.getAvailableSlot());
+            stmt.setInt(9, trip.isIsDelete() ? 1 : 0);
+            stmt.setInt(10, trip.getId());
+            
+            System.out.println("Executing alternative update for trip ID: " + trip.getId());
+            
+            int rowsAffected = stmt.executeUpdate();
+            System.out.println("Alternative update result: " + (rowsAffected > 0 ? "Success" : "Failed"));
+            return rowsAffected > 0;
+        } catch (SQLException | ClassNotFoundException e) {
+            System.out.println("Error in alternative updateTrip: " + e.getMessage());
+            e.printStackTrace();
         return false;
+        }
     }
     
     /**
@@ -566,14 +739,32 @@ public class TripDAO {
      * @return true if the operation was successful, false otherwise
      */
     public boolean softDeleteTrip(int tripId) {
-        // First check if this trip has bookings
-        BookingDAO bookingDAO = new BookingDAO();
-        if (bookingDAO.tripHasBookings(tripId)) {
-            System.out.println("Cannot delete trip #" + tripId + " as it has associated bookings");
+        // First check if the trip exists and its current status
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement checkStmt = conn.prepareStatement("SELECT id, is_delete FROM trip WHERE id = ?")) {
+            
+            checkStmt.setInt(1, tripId);
+            try (ResultSet rs = checkStmt.executeQuery()) {
+                if (!rs.next()) {
+                    System.out.println("Trip with ID " + tripId + " not found");
+                    return false;
+                }
+                
+                boolean isAlreadyDeleted = rs.getBoolean("is_delete");
+                if (isAlreadyDeleted) {
+                    System.out.println("Trip with ID " + tripId + " is already marked as deleted");
+                    return true; // Consider it a success since it's already in the desired state
+                }
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            System.out.println("Error checking trip status: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
         
-        String sql = "UPDATE trip SET is_delete = 1, deleted_date = CURRENT_TIMESTAMP WHERE id = ?";
+        // Perform the actual deletion
+        String sql = "UPDATE trip SET is_delete = 1, deleted_date = GETDATE() WHERE id = ?";
+        
         try (Connection conn = DBContext.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
@@ -646,5 +837,31 @@ public class TripDAO {
         }
         
         return trip;
+    }
+    
+    /**
+     * Get the count of all trips (including deleted ones) for a specific tour
+     * @param tourId The tour ID to check
+     * @return The count of trips for the tour
+     */
+    public int getTripCountByTourId(int tourId) {
+        String sql = "SELECT COUNT(*) FROM trip WHERE tour_id = ?";
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, tourId);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            System.out.println("Error getting trip count by tour ID: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return 0; // Default to 0 in case of errors
     }
 }

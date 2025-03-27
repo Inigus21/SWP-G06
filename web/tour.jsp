@@ -3,6 +3,21 @@
 <%@ page import="java.util.*" %>
 <%@ page import="model.*" %>
 <%@ page import="dao.*" %>
+<%@ page import="java.text.NumberFormat" %>
+<%@ page import="java.util.Locale" %>
+<%@ page import="java.text.SimpleDateFormat" %>
+<%@ page import="java.text.DecimalFormat" %>
+<%@ page import="java.text.DecimalFormatSymbols" %>
+<%@ page import="java.util.Currency" %>
+
+<%
+    // Format currency
+    NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+    currencyFormatter.setCurrency(Currency.getInstance("VND"));
+    DecimalFormatSymbols dfs = new DecimalFormatSymbols(new Locale("vi", "VN"));
+    dfs.setCurrencySymbol("VNĐ");
+    ((DecimalFormat) currencyFormatter).setDecimalFormatSymbols(dfs);
+%>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -164,7 +179,7 @@
                     <!-- Filter Sidebar -->
                     <div class="w-full lg:w-[250px]">
                         <div class="bg-white p-4 rounded-lg">
-                            <h3 class="text-base mb-4">Bộ lọc tìm kiếm:</h3>
+                            <h3 class="text-base mb-4">Bộ lọc tìm kiếm</h3>
                             <h3 class="text-base mb-4">Search</h3>
                             <form action="tour" method="GET" class="space-y-4">
                                 <!-- Search by name -->
@@ -180,9 +195,7 @@
                                 </button>
 
                             </form>
-
                             <form action="tour" method="GET" class="space-y-4">
-
                                 <!-- Preserve current sort parameter if it exists -->
                                 <% if (request.getParameter("sort") != null && !request.getParameter("sort").isEmpty()) { %>
                                 <input type="hidden" name="sort" value="<%= request.getParameter("sort") %>">
@@ -259,18 +272,17 @@
 
                                 <!-- Điểm khởi hành -->
                                 <div class="mb-4">
-                                    <div class="text-sm mb-2">Điểm khởi hành:
-                                    </div>
-                                    <select name="departure"
+                                    <div class="text-sm mb-2">Điểm khởi hành:</div>
+                                    <select name="destination"
                                             class="w-full border p-2 rounded text-sm"
                                             onchange="this.form.submit()">
-                                        <option value="" ${empty param.departure
+                                        <option value="" ${empty param.destination
                                                            ? 'selected' : '' }>Tất cả</option>
                                         <% List<City> cities =
                                             tourDAO.getAllCities();
                                             for(City city : cities) { %>
                                         <option value="<%= city.getId() %>"
-                                                <%=String.valueOf(city.getId()).equals(request.getParameter("departure"))
+                                                <%=String.valueOf(city.getId()).equals(request.getParameter("destination"))
                                                                                         ? "selected" : "" %>>
                                             <%= city.getName() %>
                                         </option>
@@ -281,15 +293,15 @@
                                 <!-- Điểm đến -->
                                 <div class="mb-4">
                                     <div class="text-sm mb-2">Điểm đến:</div>
-                                    <select name="destination"
+                                    <select name="departure"
                                             class="w-full border p-2 rounded text-sm"
                                             onchange="this.form.submit()">
                                         <option value="" ${empty
-                                                           param.destination ? 'selected' : ''
+                                                           param.departure ? 'selected' : ''
                                                 }>Tất cả</option>
                                         <% for(City city : cities) { %>
                                         <option value="<%= city.getId() %>"
-                                                <%=String.valueOf(city.getId()).equals(request.getParameter("destination"))
+                                                <%=String.valueOf(city.getId()).equals(request.getParameter("departure"))
                                                                                         ? "selected" : "" %>>
                                             <%= city.getName() %>
                                         </option>
@@ -417,15 +429,6 @@
                                         <option value="price_desc"
                                                 ${param.sort=='price_desc' ? 'selected'
                                                   : '' }>Giá cao đến thấp</option>
-                                        <option value="discount_price_asc"
-                                                ${param.sort=='discount_price_asc' ? 'selected'
-                                                  : '' }>Giá sau giảm: thấp đến cao</option>
-                                        <option value="discount_price_desc"
-                                                ${param.sort=='discount_price_desc' ? 'selected'
-                                                  : '' }>Giá sau giảm: cao đến thấp</option>
-                                        <option value="discount_percent_desc"
-                                                ${param.sort=='discount_percent_desc' ? 'selected'
-                                                  : '' }>Giảm giá nhiều nhất</option>
                                         <option value="duration"
                                                 ${param.sort=='duration' ? 'selected'
                                                   : '' }>Thời gian tour</option>
@@ -470,7 +473,7 @@
                                             <span>
                                                 <i
                                                     class="fas fa-plane-departure mr-1"></i>
-                                                Khởi hành: <%=
+                                                Điểm khởi hành: <%=
                                                     tour.getDepartureCity()
                                                 %>
                                             </span>
@@ -498,17 +501,17 @@
                                                             double discountedPrice = tour.getPriceAdult() * (1 - discountPercent);
                                                     %>
                                                 <div class="text-gray-500 line-through text-sm">
-                                                    <%= String.format("%,.0f", tour.getPriceAdult()) %> đ
+                                                    <%= currencyFormatter.format(tour.getPriceAdult()) %>
                                                 </div>
                                                 <div class="text-red-500 font-bold">
-                                                    <%= String.format("%,.0f", discountedPrice) %> đ
+                                                    <%= currencyFormatter.format(discountedPrice) %>
                                                 </div>
                                                 <div class="text-red-500 text-sm">
                                                     Giảm <%= String.format("%.0f", promotion.getDiscountPercentage()) %>%
                                                 </div>
                                                 <% } else { %>
                                                 <div class="text-red-500 font-bold">
-                                                    <%= String.format("%,.0f", tour.getPriceAdult()) %> đ
+                                                    <%= currencyFormatter.format(tour.getPriceAdult()) %>
                                                 </div>
                                                 <% } %>
                                             </div>
@@ -825,7 +828,14 @@
 
             // Show success message if URL contains a parameter indicating the fix
             const urlParams = new URLSearchParams(window.location.search);
-
+            /* Remove toast notifications
+             if (urlParams.has('price')) {
+             showToast('success', 'Bộ lọc giá đã được cập nhật và hoạt động bình thường.');
+             }
+             
+             // Show toast on page load to inform user that filter has been fixed
+             showToast('success', 'Bộ lọc giá đã được sửa chữa và hoạt động bình thường.');
+             */
         });
     </script>
 

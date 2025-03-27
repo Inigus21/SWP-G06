@@ -1,9 +1,3 @@
-<%-- 
-    Document   : tour-schedules
-    Created on : Mar 9, 2025, 11:29:33 PM
-    Author     : Nhai
---%>
-
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <jsp:include page="layout/header.jsp">

@@ -1,9 +1,3 @@
-<%-- 
-    Document   : my-bookings
-    Created on : Mar 8, 2025, 6:00:00 PM
-    Author     : Lom
---%>
-
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page import="model.Booking" %>
@@ -19,6 +13,9 @@
 <%@ page import="java.util.Date" %>
 <%@ page import="java.util.Calendar" %>
 <%@ page import="java.util.concurrent.TimeUnit" %>
+<%@ page import="java.text.DecimalFormat" %>
+<%@ page import="java.text.DecimalFormatSymbols" %>
+<%@ page import="java.util.Currency" %>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -49,6 +46,10 @@
             
             // Format currency
             NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+            currencyFormatter.setCurrency(Currency.getInstance("VND"));
+            DecimalFormatSymbols dfs = new DecimalFormatSymbols(new Locale("vi", "VN"));
+            dfs.setCurrencySymbol("VNĐ");
+            ((DecimalFormat) currencyFormatter).setDecimalFormatSymbols(dfs);
             
             // Format date
             SimpleDateFormat dateFormatter = new SimpleDateFormat("dd/MM/yyyy");
@@ -156,7 +157,7 @@
                                                             <i class="fas fa-plane-departure"></i>
                                                         </div>
                                                         <div class="ml-2">
-                                                            <div class="text-sm text-gray-500">Khởi hành từ:</div>
+                                                            <div class="text-sm text-gray-500">Điểm đến:</div>
                                                             <div class="font-medium">
                                                                 <%= departureCity != null ? departureCity.getName() : "Chưa xác định" %>
                                                             </div>
@@ -416,11 +417,11 @@
                                                 <div class="w-2/3 font-medium"><%= tour.getName() %></div>
                                             </div>
                                             <div class="flex items-start mb-3">
-                                                <div class="w-1/3 text-gray-600">Khởi hành từ:</div>
+                                                <div class="w-1/3 text-gray-600">Điểm đến:</div>
                                                 <div class="w-2/3 font-medium"><%= departureCity != null ? departureCity.getName() : "Chưa xác định" %></div>
                                             </div>
                                             <div class="flex items-start mb-3">
-                                                <div class="w-1/3 text-gray-600">Điểm đến:</div>
+                                                <div class="w-1/3 text-gray-600">Điểm khởi hành:</div>
                                                 <div class="w-2/3 font-medium"><%= destinationCity != null ? destinationCity.getName() : "Chưa xác định" %></div>
                                             </div>
                                             <div class="flex items-start mb-3">

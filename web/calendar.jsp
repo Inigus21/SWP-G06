@@ -42,6 +42,7 @@
                 <p class="text-red-500 italic text-sm">Quý khách vui lòng chọn ngày có chuyến khởi hành</p>
             </div>
         </div>
+
         <script src="https://cdn.tailwindcss.com"></script>
         <script>
             tailwind.config = {

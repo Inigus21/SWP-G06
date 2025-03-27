@@ -1,9 +1,3 @@
-<%-- 
-    Document   : edit-tour
-    Created on : Mar 9, 2025, 10:58:06 PM
-    Author     : 
---%>
-
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <jsp:include page="layout/header.jsp">
@@ -36,13 +30,13 @@
                 <strong>Debug Info:</strong><br>
                 Tour ID: ${tour.id}<br>
                 Category ID: ${tour.categoryId}<br>
-                Departure Location ID: ${tour.departureLocationId}<br>
+                Destination Location ID: ${tour.departureLocationId}<br>
                 Region: ${tour.region}<br>
             </div>
             
-            <form action="${pageContext.request.contextPath}/admin/tours" method="post" class="needs-validation" novalidate>
+            <form action="${pageContext.request.contextPath}/admin/tours/update" method="post" class="needs-validation" novalidate>
                 <input type="hidden" name="action" value="update">
-                <input type="hidden" name="tourId" value="${tour.id}">
+                <input type="hidden" name="id" value="${tour.id}">
                 
                 <!-- Hidden fields for required parameters that aren't visible in the form -->
                 <input type="hidden" name="availableSlot" value="${tour.availableSlot != null ? tour.availableSlot : 0}">
@@ -122,15 +116,15 @@
                         </div>
                         
                         <div class="mb-3">
-                            <label for="departureLocationId" class="form-label">Departure City</label>
+                            <label for="departureLocationId" class="form-label">Destination City</label>
                             <select class="form-select" id="departureLocationId" name="departureLocationId" required>
-                                <option value="" disabled>Select a departure city</option>
+                                <option value="" disabled>Select a destination city</option>
                                 <c:forEach var="city" items="${cities}">
                                     <c:set var="isCitySelected" value="${city.id == tour.departureLocationId}" />
                                     <option value="${city.id}" ${isCitySelected ? 'selected' : ''}>${city.name}</option>
                                 </c:forEach>
                             </select>
-                            <div class="invalid-feedback">Please select a departure city.</div>
+                            <div class="invalid-feedback">Please select a destination city.</div>
                             <c:if test="${empty cities}">
                                 <div class="form-text text-warning">No cities available. Make sure cities are loaded correctly.</div>
                             </c:if>
