@@ -86,7 +86,7 @@
                         </div>
                     </form>
 
-                  <div class="table-responsive">
+                    <div class="table-responsive">
                         <table class="table table-bordered table-hover" id="bookingsTable" width="100%" cellspacing="0">
                             <thead>
                                 <tr>
@@ -110,7 +110,7 @@
                                         <c:set var="shouldUpdateToComplete" value="true" />
                                         <%-- Auto update completed tours logic would be in the controller/servlet --%>
                                     </c:if>
-                                    
+
                                     <tr>
                                         <td>${booking.id}</td>
                                         <td>${booking.user.fullName}</td>
@@ -150,7 +150,7 @@
                                                     <span class="badge bg-secondary">${booking.status}</span>
                                                 </c:otherwise>
                                             </c:choose>
-                                            
+
                                             <c:if test="${shouldUpdateToComplete == true}">
                                                 <span class="badge bg-warning ms-1">
                                                     <i class="fas fa-exclamation-triangle"></i> Nên cập nhật
@@ -162,7 +162,7 @@
                                                 <a href="${pageContext.request.contextPath}/admin/bookings/view?id=${booking.id}" class="btn btn-info btn-sm" data-bs-toggle="tooltip" title="View Details">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                
+
                                                 <c:choose>
                                                     <c:when test="${booking.status == 'Đã thanh toán'}">
                                                         <%-- For "Đã thanh toán" status, show approve/reject buttons --%>
@@ -250,12 +250,16 @@
                                 <c:set var="queryString" value="${queryString}&sort=${param.sort}" />
                             </c:if>
 
+                            <!-- Hidden field to store current action for JS -->
+                            <input type="hidden" name="current-action" value="bookings">
+
                             <jsp:include page="components/pagination.jsp">
                                 <jsp:param name="currentPage" value="${currentPage}" />
                                 <jsp:param name="itemsPerPage" value="${itemsPerPage}" />
                                 <jsp:param name="totalItems" value="${totalItems}" />
                                 <jsp:param name="totalPages" value="${totalPages}" />
                                 <jsp:param name="queryString" value="${queryString}" />
+                                <jsp:param name="action" value="bookings" />
                             </jsp:include>
                         </c:if>
                     </div>
