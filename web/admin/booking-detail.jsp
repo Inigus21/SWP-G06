@@ -44,7 +44,7 @@
                 </div>
                 <% session.removeAttribute("successMessage"); %>
             </c:if>
-            
+
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">Booking #${booking.id}</h6>
@@ -65,7 +65,7 @@
                                }
                            }
                         %>
-                        
+
                         <c:choose>
                             <c:when test="${booking.status eq 'Đã thanh toán'}">
                                 <!-- For "Đã thanh toán" status, show approve/reject buttons -->
@@ -86,8 +86,8 @@
                                 </form>
                             </c:when>
                         </c:choose>
-                        
-                       
+
+
                     </div>
                 </div>
                 <div class="card-body">
@@ -107,7 +107,7 @@
                                             <th>Status</th>
                                             <td>
                                                 <c:choose>
-                                                    
+
                                                     <c:when test="${booking.status eq 'Đã thanh toán'}">
                                                         <span class="badge bg-primary">Đã thanh toán</span>
                                                     </c:when>
@@ -127,7 +127,7 @@
                                                         <span class="badge bg-secondary">${booking.status != null ? booking.status : 'Unknown'}</span>
                                                     </c:otherwise>
                                                 </c:choose>
-                                                
+
                                                 <c:if test="${shouldMarkComplete}">
                                                     <span class="badge bg-warning ms-1" title="Tour has completed but status not updated">
                                                         <i class="fas fa-exclamation-triangle"></i> Needs Update
@@ -156,14 +156,14 @@
                                                         <c:set var="totalAmount" value="${totalAmount + transaction.amount}" />
                                                     </c:if>
                                                 </c:forEach>
-                                                ${totalAmount} VNĐ
+                                                ${currencyFormatter.format(totalAmount)}
                                             </td>
                                         </tr>
                                     </table>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="col-md-6">
                             <div class="card mb-4">
                                 <div class="card-header">
@@ -192,7 +192,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-12">
                             <div class="card mb-4">
@@ -232,11 +232,11 @@
                                                 </tr>
                                                 <tr>
                                                     <th>Adult Price</th>
-                                                    <td>${tour.priceAdult} VNĐ</td>
+                                                    <td>${currencyFormatter.format(tour.priceAdult)}</td>
                                                 </tr>
                                                 <tr>
                                                     <th>Child Price</th>
-                                                    <td>${tour.priceChildren} VNĐ</td>
+                                                    <td>${currencyFormatter.format(tour.priceChildren)}</td>
                                                 </tr>
                                             </table>
                                         </div>
@@ -245,7 +245,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-12">
                             <div class="card mb-4">
@@ -350,30 +350,30 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         // Initialize tooltips
         const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
         tooltipTriggerList.forEach(tooltipTriggerEl => {
             new bootstrap.Tooltip(tooltipTriggerEl);
         });
-        
+
         // Approve Booking Button
         const approveBookingBtn = document.getElementById('approveBookingBtn');
         if (approveBookingBtn) {
-            approveBookingBtn.addEventListener('click', function() {
+            approveBookingBtn.addEventListener('click', function () {
                 if (confirm('Are you sure you want to approve this booking?')) {
                     // Submit form to approve booking
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.action = '${pageContext.request.contextPath}/admin/bookings/approve';
-                    
+
                     const bookingIdInput = document.createElement('input');
                     bookingIdInput.type = 'hidden';
                     bookingIdInput.name = 'bookingId';
                     bookingIdInput.value = '${booking.id}';
-                    
+
                     console.log('Submitting approval for booking ID: ' + bookingIdInput.value);
-                    
+
                     form.appendChild(bookingIdInput);
                     document.body.appendChild(form);
                     form.submit();
