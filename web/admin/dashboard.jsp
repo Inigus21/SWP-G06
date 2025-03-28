@@ -126,9 +126,9 @@
                 </c:if>
             </select>
         </div>
-        <div class="col-md-6 text-end">
+<!--        <div class="col-md-6 text-end">
             <button id="applyFilters" class="btn btn-primary">Apply Filters</button>
-        </div>
+        </div>-->
     </div>
     
     <div class="row">
