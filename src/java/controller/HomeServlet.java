@@ -71,6 +71,7 @@ public class HomeServlet extends HttpServlet {
                 // Get only real top 3 tours from database - no fallbacks
 
                 popularTours = tourDAO.getPopularToursForHomepage(6);
+
                 getServletContext().log("HomeServlet: Retrieved " + popularTours.size() + " tours from database for Tour section");
                 
                 // Print each tour for debugging
@@ -108,7 +109,9 @@ public class HomeServlet extends HttpServlet {
             List<Tour> lastMinuteDeals = null;
             try {
 
+
                 lastMinuteDeals = tourDAO.getLastMinuteDeals(6);
+
 
                 getServletContext().log("HomeServlet: Retrieved " + (lastMinuteDeals != null ? lastMinuteDeals.size() : 0) + " last-minute deals");
             } catch (Exception e) {

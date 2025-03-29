@@ -12,6 +12,7 @@ import jakarta.servlet.http.Part;
 import java.io.File;
 import java.io.IOException;
 import model.User;
+import utils.PasswordHashing;
 
 @WebServlet(name = "UserProfileServlet", urlPatterns = {"/user-profile"})
 @MultipartConfig(
@@ -63,7 +64,20 @@ public class UserProfileServlet extends HttpServlet {
                 User user = new User();
                 user.setId(sessionUser.getId());
                 user.setFullName(request.getParameter("fullName"));
-                user.setPhone(request.getParameter("phone"));
+                
+                // Get phone number and validate it
+                String phone = request.getParameter("phone");
+                // Validate phone number: starts with 0 and has 10-11 digits
+                if (phone != null && !phone.isEmpty()) {
+                    if (!phone.matches("^0\\d{9,10}$")) {
+                        request.setAttribute("error", "Số điện thoại phải bắt đầu bằng số 0 và có 10-11 số");
+                        request.getRequestDispatcher("user-profile.jsp").forward(request, response);
+                        return;
+                    }
+                    // Phone will be processed by setPhone() method in User class
+                }
+                
+                user.setPhone(phone);
                 user.setAddress(request.getParameter("address"));
                 user.setGenderFromText(request.getParameter("gender"));
                 user.setDob(request.getParameter("dob"));
@@ -97,11 +111,29 @@ public class UserProfileServlet extends HttpServlet {
                 String newPassword = request.getParameter("newPassword");
                 String confirmPassword = request.getParameter("confirmPassword");
                 
+                System.out.println("Password change attempt for user: " + sessionUser.getId());
+                
                 if (!newPassword.equals(confirmPassword)) {
                     request.setAttribute("error", "Mật khẩu xác nhận không khớp");
                 } else {
-                    userDAO.updatePassword(sessionUser.getId(), newPassword);
-                    request.setAttribute("success", "Đổi mật khẩu thành công");
+                    try {
+                        // Verify the current password is correct
+                        String storedHash = userDAO.getUserPasswordHash(sessionUser.getId());
+                        System.out.println("Retrieved stored hash: " + (storedHash != null ? "Not null" : "NULL"));
+                        
+                        if (storedHash != null && PasswordHashing.verifyPassword(currentPassword, storedHash)) {
+                            System.out.println("Password verification successful");
+                            userDAO.updatePassword(sessionUser.getId(), newPassword);
+                            request.setAttribute("success", "Đổi mật khẩu thành công");
+                        } else {
+                            System.out.println("Password verification failed");
+                            request.setAttribute("error", "Mật khẩu hiện tại không chính xác");
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Error during password verification: " + e.getMessage());
+                        e.printStackTrace();
+                        request.setAttribute("error", "Lỗi xác nhận mật khẩu: " + e.getMessage());
+                    }
                 }
             }
             
