@@ -1,5 +1,4 @@
 package dao;
-
 import model.Trip;
 import model.Tour;
 import utils.DBContext;
