@@ -307,7 +307,7 @@
                             <c:set var="itemsPerPage" value="${itemsPerPage != null ? itemsPerPage : 10}" />
                             <c:set var="totalItems" value="${totalBookings}" />
                             <c:set var="totalPages" value="${totalPages != null ? totalPages : 1}" />
-
+                            
                             <!-- Build query string for pagination -->
                             <c:set var="queryString" value="action=bookings" />
                             <c:if test="${not empty param.search}">
@@ -316,16 +316,19 @@
                             <c:if test="${not empty param.status}">
                                 <c:set var="queryString" value="${queryString}&status=${param.status}" />
                             </c:if>
+                            <c:if test="${not empty param.trip}">
+                                <c:set var="queryString" value="${queryString}&trip=${param.trip}" />
+                            </c:if>
                             <c:if test="${not empty param.date}">
                                 <c:set var="queryString" value="${queryString}&date=${param.date}" />
                             </c:if>
                             <c:if test="${not empty param.sort}">
                                 <c:set var="queryString" value="${queryString}&sort=${param.sort}" />
                             </c:if>
-
+                            
                             <!-- Hidden field to store current action for JS -->
                             <input type="hidden" name="current-action" value="bookings">
-
+                            
                             <jsp:include page="components/pagination.jsp">
                                 <jsp:param name="currentPage" value="${currentPage}" />
                                 <jsp:param name="itemsPerPage" value="${itemsPerPage}" />
