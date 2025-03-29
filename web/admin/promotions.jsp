@@ -103,7 +103,9 @@
                             <th>Discount</th>
                             <th>Start Date</th>
                             <th>End Date</th>
-                            <th>Linked Tours</th>
+                           
+                            <th>Status</th>
+                             <th></th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -118,13 +120,18 @@
                                 <td>
                                     <c:choose>
                                         <c:when test="${promotion.hasLinkedTours}">
-                                            <span class="badge bg-primary"><i class="fas fa-link me-1"></i> Linked</span>
+                                            <span class="badge bg-primary">Linked</span>
                                         </c:when>
                                         <c:otherwise>
                                             <span class="badge bg-secondary">None</span>
                                         </c:otherwise>
                                     </c:choose>
+                                       
                                 </td>
+                                <td>     <span class="badge ${promotion.status eq 'Active' ? 'bg-success' : promotion.status eq 'Upcoming' ? 'bg-primary' : 'bg-secondary'}">
+                                        ${promotion.status}
+                                    </span></td>
+                               
                                 <td>
                                     <div class="d-flex gap-2">
                                         <a href="${pageContext.request.contextPath}/admin/promotions/view?id=${promotion.id}" class="btn btn-sm btn-info text-white" title="View">
@@ -172,7 +179,7 @@
             </div>
             <div class="modal-body">
                 <p>Are you sure you want to delete the promotion: <span id="promotionTitle"></span>?</p>
-                <p class="text-danger">This action cannot be undone.</p>
+             
                 <div class="alert alert-warning mt-3">
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     <strong>Note:</strong> Promotions linked to tours cannot be deleted. 
