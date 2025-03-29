@@ -22,9 +22,9 @@
     ((DecimalFormat) currencyFormatter).setDecimalFormatSymbols(dfs);
     
     // Make formatter available in EL
-    pageContext.setAttribute("currencyFormatter", currencyFormatter);
-    
-    // Get available trips for the trip filter
+    pageContext.setAttribute("currencyFormatter", currencyFormatter)
+     // Get available trips for the trip filter
+
     TripDAO tripDAO = new TripDAO();
     List<Trip> availableTrips = tripDAO.getAllActiveTrips();
     pageContext.setAttribute("availableTrips", availableTrips);
@@ -107,7 +107,6 @@
                             </div>
                         </div>
                     </form>
-                    
                     <!-- Booking status tabs -->
                     <ul class="nav nav-tabs mb-3" id="bookingStatusTabs" role="tablist">
                         <li class="nav-item" role="presentation">
@@ -136,7 +135,6 @@
                             </button>
                         </li>
                     </ul>
-                    
                     <!-- Tab content -->
                     <div class="tab-content" id="bookingStatusTabsContent">
                         <!-- All bookings tab -->
@@ -165,7 +163,7 @@
                                                 <c:set var="shouldUpdateToComplete" value="true" />
                                                 <%-- Auto update completed tours logic would be in the controller/servlet --%>
                                             </c:if>
-                                            
+
                                             <tr>
                                                 <td>${booking.id}</td>
                                                 <td>${booking.user.fullName}</td>
@@ -205,7 +203,7 @@
                                                             <span class="badge bg-secondary">${booking.status}</span>
                                                         </c:otherwise>
                                                     </c:choose>
-                                                    
+
                                                     <c:if test="${shouldUpdateToComplete == true}">
                                                         <span class="badge bg-warning ms-1">
                                                             <i class="fas fa-exclamation-triangle"></i> Nên cập nhật
@@ -217,7 +215,7 @@
                                                         <a href="${pageContext.request.contextPath}/admin/bookings/view?id=${booking.id}" class="btn btn-info btn-sm" data-bs-toggle="tooltip" title="View Details">
                                                             <i class="fas fa-eye"></i>
                                                         </a>
-                                                        
+
                                                         <c:choose>
                                                             <c:when test="${booking.status == 'Đã thanh toán'}">
                                                                 <%-- For "Đã thanh toán" status, show approve/reject buttons --%>
@@ -259,11 +257,24 @@
                                 </table>
                             </div>
                         </div>
-                        
+
                         <!-- Status-specific tabs will be populated by JavaScript -->
                         <div class="tab-pane fade" id="paid-bookings" role="tabpanel" aria-labelledby="paid-tab">
                             <!-- Will be populated by JavaScript -->
                         </div>
+
+                        <div class="tab-pane fade" id="approved-bookings" role="tabpanel" aria-labelledby="approved-tab">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+
+                        <div class="tab-pane fade" id="completed-bookings" role="tabpanel" aria-labelledby="completed-tab">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+
+                        <div class="tab-pane fade" id="cancelled-bookings" role="tabpanel" aria-labelledby="cancelled-tab">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+
                         
                         <div class="tab-pane fade" id="approved-bookings" role="tabpanel" aria-labelledby="approved-tab">
                             <!-- Will be populated by JavaScript -->
