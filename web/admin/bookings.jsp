@@ -346,51 +346,133 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         // Initialize tooltips
         const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
         tooltipTriggerList.forEach(tooltipTriggerEl => {
             new bootstrap.Tooltip(tooltipTriggerEl);
         });
-
+        
         // Enter key in search box submits the form
-        document.getElementById('searchInput').addEventListener('keyup', function (e) {
+        document.getElementById('searchInput').addEventListener('keyup', function(e) {
             if (e.key === 'Enter') {
                 document.getElementById('filterForm').submit();
             }
         });
-
+        
         // Approve Booking Button
         const approveBookingBtns = document.querySelectorAll('.approve-booking-btn');
         approveBookingBtns.forEach(btn => {
-            btn.addEventListener('click', function () {
+            btn.addEventListener('click', function() {
                 const bookingId = this.getAttribute('data-booking-id');
                 if (confirm('Are you sure you want to approve this booking?')) {
                     // Submit form to approve booking
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.action = '${pageContext.request.contextPath}/admin/bookings/approve';
-
+                    
                     const bookingIdInput = document.createElement('input');
                     bookingIdInput.type = 'hidden';
                     bookingIdInput.name = 'bookingId';
                     bookingIdInput.value = bookingId;
-
+                    
                     form.appendChild(bookingIdInput);
                     document.body.appendChild(form);
                     form.submit();
                 }
             });
         });
-
+        
         // Reject Booking Button
         const rejectBookingBtns = document.querySelectorAll('.reject-booking-btn');
         rejectBookingBtns.forEach(btn => {
-            btn.addEventListener('click', function () {
+            btn.addEventListener('click', function() {
                 const bookingId = this.getAttribute('data-booking-id');
                 document.getElementById('rejectBookingId').value = bookingId;
             });
         });
+        
+        // Function to populate status-specific tabs
+        function populateStatusTabs() {
+            const allBookings = Array.from(document.querySelectorAll('#allBookingsTable tbody tr'));
+            
+            // Create tables for each status
+            const statusTables = {
+                'paid': { selector: '#paid-bookings', status: 'Đã thanh toán', items: [] },
+                'approved': { selector: '#approved-bookings', status: 'Đã duyệt', items: [] },
+                'completed': { selector: '#completed-bookings', status: 'Hoàn thành', items: [] },
+                'cancelled': { selector: '#cancelled-bookings', statuses: ['Đã hủy', 'Đã hủy muộn'], items: [] }
+            };
+            
+            // Filter bookings by status
+            allBookings.forEach(row => {
+                const statusCell = row.querySelector('td:nth-child(9)');
+                const statusText = statusCell.textContent.trim();
+                
+                // Check which status this booking belongs to
+                for (const key in statusTables) {
+                    const table = statusTables[key];
+                    if (table.status && statusText.includes(table.status)) {
+                        table.items.push(row.cloneNode(true));
+                    } else if (table.statuses && table.statuses.some(s => statusText.includes(s))) {
+                        table.items.push(row.cloneNode(true));
+                    }
+                }
+            });
+            
+            // Populate each status tab with its own table
+            for (const key in statusTables) {
+                const table = statusTables[key];
+                const tabContent = document.querySelector(table.selector);
+                
+                if (tabContent && table.items.length > 0) {
+                    // Create a new table for this status
+                    const tableHTML = `
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Customer</th>
+                                        <th>Tour</th>
+                                        <th>Trip Date</th>
+                                        <th>Booking Date</th>
+                                        <th>Adults</th>
+                                        <th>Children</th>
+                                        <th>Total Amount</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    
+                    // Set the HTML
+                    tabContent.innerHTML = tableHTML;
+                    
+                    // Add the items to the tbody
+                    const tbody = tabContent.querySelector('tbody');
+                    table.items.forEach(item => {
+                        tbody.appendChild(item);
+                    });
+                } else if (tabContent) {
+                    // No items for this status
+                    tabContent.innerHTML = '<div class="alert alert-info">No bookings with this status.</div>';
+                }
+            }
+            
+            // Update the status count badges
+            document.querySelector('#paid-tab .badge').textContent = statusTables['paid'].items.length;
+            document.querySelector('#approved-tab .badge').textContent = statusTables['approved'].items.length;
+            document.querySelector('#completed-tab .badge').textContent = statusTables['completed'].items.length;
+            document.querySelector('#cancelled-tab .badge').textContent = statusTables['cancelled'].items.length;
+        }
+        
+        // Initialize status tabs
+        populateStatusTabs();
     });
 </script>
 
