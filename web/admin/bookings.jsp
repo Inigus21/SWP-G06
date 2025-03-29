@@ -59,7 +59,7 @@
                         <input type="hidden" name="page" value="1">
 
                         <div class="row mb-3">
-                            <div class="col-md-3 mb-2">
+                          <div class="col-md-2 mb-2">
                                 <div class="input-group">
                                     <input type="text" id="searchInput" name="search" class="form-control" placeholder="Search bookings..." value="${param.search}">
                                     <button class="btn btn-primary" type="submit">
@@ -67,10 +67,9 @@
                                     </button>
                                 </div>
                             </div>
-                            <div class="col-md-3 mb-2">
+                            <div class="col-md-2 mb-2">
                                 <select id="statusFilter" name="status" class="form-select" onchange="document.getElementById('filterForm').submit();">
                                     <option value="">Tất cả trạng thái</option>
-
                                     <option value="Đã thanh toán" ${param.status == 'Đã thanh toán' ? 'selected' : ''}>Đã thanh toán</option>
                                     <option value="Đã duyệt" ${param.status == 'Đã duyệt' ? 'selected' : ''}>Đã duyệt</option>
                                     <option value="Đã hủy" ${param.status == 'Đã hủy' ? 'selected' : ''}>Đã hủy</option>
@@ -78,16 +77,31 @@
                                     <option value="Hoàn thành" ${param.status == 'Hoàn thành' ? 'selected' : ''}>Hoàn thành</option>
                                 </select>
                             </div>
-                            <div class="col-md-3 mb-2">
+                            <div class="col-md-2 mb-2">
+                                <select id="tripFilter" name="trip" class="form-select" onchange="document.getElementById('filterForm').submit();">
+                                    <option value="">Tất cả các chuyến đi</option>
+                                    <c:forEach var="trip" items="${availableTrips}">
+                                        <option value="${trip.id}" ${param.trip == trip.id ? 'selected' : ''}>
+                                            ${trip.tour.name} - ${trip.departureDate}
+                                        </option>
+                                    </c:forEach>
+                                </select>
+                            </div>
+                            <div class="col-md-2 mb-2">
                                 <input type="date" id="dateFilter" name="date" class="form-control" placeholder="Filter by date" value="${param.date}" onchange="document.getElementById('filterForm').submit();">
                             </div>
-                            <div class="col-md-3 mb-2">
+                            <div class="col-md-2 mb-2">
                                 <select id="sortOrder" name="sort" class="form-select" onchange="document.getElementById('filterForm').submit();">
                                     <option value="date_desc" ${param.sort == 'date_desc' || param.sort == null ? 'selected' : ''}>Date (Newest First)</option>
                                     <option value="date_asc" ${param.sort == 'date_asc' ? 'selected' : ''}>Date (Oldest First)</option>
                                     <option value="amount_desc" ${param.sort == 'amount_desc' ? 'selected' : ''}>Amount (High-Low)</option>
                                     <option value="amount_asc" ${param.sort == 'amount_asc' ? 'selected' : ''}>Amount (Low-High)</option>
                                 </select>
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-filter me-1"></i> Apply Filters
+                                </button>
                             </div>
                         </div>
                     </form>
