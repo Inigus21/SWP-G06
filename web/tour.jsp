@@ -195,6 +195,7 @@
                                 </button>
 
                             </form>
+
                             <form action="tour" method="GET" class="space-y-4">
                                 <!-- Preserve current sort parameter if it exists -->
                                 <% if (request.getParameter("sort") != null && !request.getParameter("sort").isEmpty()) { %>
@@ -429,6 +430,9 @@
                                         <option value="price_desc"
                                                 ${param.sort=='price_desc' ? 'selected'
                                                   : '' }>Giá cao đến thấp</option>
+                                        <option value="discount_percent_desc"
+                                                ${param.sort=='discount_percent_desc' ? 'selected'
+                                                  : '' }>Giảm giá nhiều nhất</option>
                                         <option value="duration"
                                                 ${param.sort=='duration' ? 'selected'
                                                   : '' }>Thời gian tour</option>
