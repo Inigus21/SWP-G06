@@ -27,14 +27,14 @@ public class AuthenticationFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
         HttpSession session = httpRequest.getSession(false);
-
+        
         String requestURI = httpRequest.getRequestURI();
         boolean isLoggedIn = (session != null && session.getAttribute("user") != null);
         boolean isLoginPage = requestURI.endsWith("/login");
         boolean isRegisterPage = requestURI.endsWith("/register");
         boolean isProfilePage = requestURI.endsWith("/user-profile");
         boolean isAdminPath = requestURI.contains("/admin");
-
+        
         if (isLoggedIn) {
             // Check admin access to admin pages
             if (isAdminPath) {
@@ -48,7 +48,7 @@ public class AuthenticationFilter implements Filter {
                     return;
                 }
             }
-
+            
             // Nếu đã đăng nhập, không cho phép truy cập trang login và register
             if (isLoginPage || isRegisterPage) {
                 httpResponse.sendRedirect(httpRequest.getContextPath() + "/home");
@@ -63,7 +63,7 @@ public class AuthenticationFilter implements Filter {
                 dispatcher.forward(request, response);
                 return;
             }
-
+            
             // Show error page for unauthenticated users trying to access admin pages
             if (isAdminPath) {
                 request.setAttribute("errorMessage", "Bạn không có quyền truy cập vào trang quản trị.");
@@ -72,11 +72,11 @@ public class AuthenticationFilter implements Filter {
                 return;
             }
         }
-
+        
         chain.doFilter(request, response);
     }
 
     @Override
     public void destroy() {
     }
-}
+} 

@@ -33,7 +33,7 @@
             <ul class="text-sm text-gray-600 space-y-2">
                 <li> <a href="#" class="hover:text-sky-500 transition">Tin tức</a> </li>
                 <li> <a href="#" class="hover:text-sky-500 transition">Trợ giúp</a> </li>
-                <li> <a href="#" class="hover:text-sky-500 transition">Chính sách bảo mật</a> </li>
+                <li> <a href="./privacy.jsp" class="hover:text-sky-500 transition">Chính sách bảo mật</a> </li>
                 <li> <a href="#" class="hover:text-sky-500 transition">Điều khoản sử dụng</a> </li>
                 <li> <a href="#" class="hover:text-sky-500 transition">Chính sách bảo vệ dữ liệu cá nhân</a> </li>
             </ul>

@@ -9,6 +9,9 @@
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.time.LocalDateTime" %>
 <%@ page import="java.time.format.DateTimeFormatter" %>
+<%@ page import="java.util.Currency" %>
+<%@ page import="java.text.DecimalFormat" %>
+<%@ page import="java.text.DecimalFormatSymbols" %>
 <%
     // Get the attributes set by the HomeServlet
     List<Tour> topDiscountedTours = (List<Tour>) request.getAttribute("topDiscountedTours");
@@ -20,6 +23,10 @@
     
     // Initialize numberFormat for currency display
     NumberFormat numberFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+    numberFormat.setCurrency(Currency.getInstance("VND"));
+    DecimalFormatSymbols dfs = new DecimalFormatSymbols(new Locale("vi", "VN"));
+    dfs.setCurrencySymbol("VNĐ");
+    ((DecimalFormat) numberFormat).setDecimalFormatSymbols(dfs);
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -460,7 +467,7 @@
                         <h3 class="font-bold mb-4">Thông tin</h3>
                         <ul class="space-y-2">
                             <li><a href="#" class="text-gray-600 hover:text-blue-500 transition">Trợ giúp</a></li>
-                            <li><a href="#" class="text-gray-600 hover:text-blue-500 transition">Chính sách bảo mật</a></li>
+                            <li><a href="./privacy.jsp" class="text-gray-600 hover:text-blue-500 transition">Chính sách bảo mật</a></li>
                             <li><a href="#" class="text-gray-600 hover:text-blue-500 transition">Điều khoản sử dụng</a></li>
                             <li><a href="#" class="text-gray-600 hover:text-blue-500 transition">Chính sách đổi trả và lấy lại tiền</a></li>
                         </ul>

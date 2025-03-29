@@ -25,7 +25,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>My Webcrumbs Plugin</title>
+        <title>TourNest - Tour List </title>
         <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
         <link rel="stylesheet"
               href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -180,7 +180,6 @@
                     <div class="w-full lg:w-[250px]">
                         <div class="bg-white p-4 rounded-lg">
                             <h3 class="text-base mb-4">Bộ lọc tìm kiếm</h3>
-                            <h3 class="text-base mb-4">Search</h3>
                             <form action="tour" method="GET" class="space-y-4">
                                 <!-- Search by name -->
                                 <div class="mb-4">
@@ -430,9 +429,6 @@
                                         <option value="price_desc"
                                                 ${param.sort=='price_desc' ? 'selected'
                                                   : '' }>Giá cao đến thấp</option>
-                                        <option value="discount_percent_desc"
-                                                ${param.sort=='discount_percent_desc' ? 'selected'
-                                                  : '' }>Giảm giá nhiều nhất</option>
                                         <option value="duration"
                                                 ${param.sort=='duration' ? 'selected'
                                                   : '' }>Thời gian tour</option>
@@ -707,7 +703,7 @@
                                 <li> <a href="#"
                                         class="hover:text-sky-500 transition">Trợ
                                         giúp</a> </li>
-                                <li> <a href="#"
+                                <li> <a href="./privacy.jsp"
                                         class="hover:text-sky-500 transition">Chính
                                         sách bảo mật</a> </li>
                                 <li> <a href="#"
