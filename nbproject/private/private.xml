@@ -2,12 +2,6 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group>
-            <file>file:/D:/SWP_PROJECT/SWP-G06/web/home.jsp</file>
-            <file>file:/D:/SWP_PROJECT/SWP-G06/src/java/controller/HomeServlet.java</file>
-            <file>file:/D:/SWP_PROJECT/SWP-G06/web/admin/booking-detail.jsp</file>
-            <file>file:/D:/SWP_PROJECT/SWP-G06/web/admin/dashboard.jsp</file>
-            <file>file:/D:/SWP_PROJECT/SWP-G06/src/java/dao/TourDAO.java</file>
-        </group>
+        <group/>
     </open-files>
 </project-private>
