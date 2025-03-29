@@ -2,6 +2,8 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ page import="dao.BookingDAO" %>
+<%@ page import="dao.TripDAO" %>
+<%@ page import="model.Trip" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Date" %>
@@ -21,6 +23,10 @@
     
     // Make formatter available in EL
     pageContext.setAttribute("currencyFormatter", currencyFormatter);
+     // Get available trips for the trip filter
+    TripDAO tripDAO = new TripDAO();
+    List<Trip> availableTrips = tripDAO.getAllActiveTrips();
+    pageContext.setAttribute("availableTrips", availableTrips);
 %>
 <jsp:include page="layout/header.jsp">
     <jsp:param name="active" value="bookings"/>
