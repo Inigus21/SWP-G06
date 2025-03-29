@@ -16,7 +16,6 @@ import model.Promotion;
 import model.Tour;
 import model.Trip;
 import utils.DBContext;
-import dao.BookingDAO;
 
 public class TourDAO {
 

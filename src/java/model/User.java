@@ -14,7 +14,7 @@ public class User {
     private String googleId;
     private String createDate;
     private boolean isDelete;
-    private boolean emailVerified;
+    private boolean emailVerified; // New field for email verification status
     
     public User() {
     }
@@ -88,7 +88,7 @@ public class User {
             this.phone = phone;
         }
     }
-    
+
     public String getAddress() {
         return address;
     }

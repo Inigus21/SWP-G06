@@ -1,5 +1,3 @@
-
-
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ page import="model.Tour" %>
 <%@ page import="model.User" %>
@@ -7,6 +5,11 @@
 <%@ page import="dao.CityDAO" %>
 <%@ page import="java.text.NumberFormat" %>
 <%@ page import="java.util.Locale" %>
+<%@ page import="java.util.Currency" %>
+<%@ page import="java.text.DecimalFormatSymbols" %>
+<%@ page import="java.text.DecimalFormat" %>
+<%@ page import="dao.TripDAO" %>
+<%@ page import="model.Trip" %>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -28,6 +31,27 @@
             
             // Get the tour from the request
             Tour tour = (Tour) request.getAttribute("tour");
+            
+            // Get the trip's available slots
+            int availableSlots = 10; // Default fallback value
+            
+            // Check if trip is available in request attributes
+            Trip trip = (Trip) request.getAttribute("trip");
+            if (trip != null) {
+                availableSlots = trip.getAvailableSlot();
+            } else {
+                // If not in request attributes, try to load it using the ID
+                try {
+                    int tripId = Integer.parseInt(request.getParameter("tripId"));
+                    TripDAO tripDAO = new TripDAO();
+                    trip = tripDAO.getTripById(tripId);
+                    if (trip != null) {
+                        availableSlots = trip.getAvailableSlot();
+                    }
+                } catch (Exception e) {
+                    // If error, keep default value
+                }
+            }
             
             // Check if this trip has a valid promotion
             boolean hasPromotion = "true".equals(request.getParameter("hasPromotion"));
@@ -65,6 +89,10 @@
             
             // Format currency
             NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+            currencyFormatter.setCurrency(Currency.getInstance("VND"));
+            DecimalFormatSymbols dfs = new DecimalFormatSymbols(new Locale("vi", "VN"));
+            dfs.setCurrencySymbol("VNĐ");
+            ((DecimalFormat) currencyFormatter).setDecimalFormatSymbols(dfs);
         %>
         <div id="webcrumbs" class="bg-gray-100 min-h-screen">
             <!-- Include Header -->
@@ -101,9 +129,15 @@
                             </div>
                         </div>
                         
+                        <% if (request.getAttribute("errorMessage") != null) { %>
+                            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 mb-4 rounded">
+                                <%= request.getAttribute("errorMessage") %>
+                            </div>
+                        <% } %>
+                        
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="md:col-span-2">
-                                <form id="bookingForm" action="<%= request.getContextPath() %>/payment" method="post">
+                                <form id="bookingForm" action="<%= request.getContextPath() %>/payment" method="post" onsubmit="return validatePhoneNumber()">
                                     <input type="hidden" name="tourId" value="<%= tour.getId() %>">
                                     <input type="hidden" name="tripId" value="<%= request.getParameter("tripId") %>">
                                     <input type="hidden" name="hasPromotion" value="<%= hasPromotion %>">
@@ -129,11 +163,13 @@
                                                 <label class="block mb-1 text-sm">Số điện thoại <span class="text-red-500">*</span></label>
                                                 <input
                                                     type="text"
+                                                    id="phone"
                                                     name="phone"
                                                     placeholder="Nhập số điện thoại"
                                                     value="<%= user.getPhone() != null ? user.getPhone() : "" %>"
                                                     <%= user.getPhone() != null && !user.getPhone().isEmpty() ? "readonly class=\"w-full border border-gray-300 rounded px-3 py-2 bg-gray-100 cursor-not-allowed\"" : "class=\"w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition\"" %>
                                                 />
+                                                <div id="phoneError" class="text-red-500 text-sm mt-1 hidden">Số điện thoại phải bắt đầu bằng số 0 và có 10-11 số</div>
                                             </div>
                                             <div>
                                                 <label class="block mb-1 text-sm">Email <span class="text-red-500">*</span></label>
@@ -170,7 +206,7 @@
                                             >
                                                 <div>
                                                     <span class="block font-medium">Người lớn</span>
-                                                    <span class="text-sm text-gray-500">Từ 12 trở lên</span>
+                                                    <span class="text-sm text-gray-500">Từ 12 tuổi trở lên</span>
                                                 </div>
                                                 <div class="flex items-center">
                                                     <button type="button"
@@ -179,7 +215,7 @@
                                                     >
                                                         -
                                                     </button>
-                                                    <input type="number" id="adultCount" name="adultCount" value="1" min="1" max="10" 
+                                                    <input type="number" id="adultCount" name="adultCount" value="1" min="1" max="<%= availableSlots %>" 
                                                         class="w-8 h-8 text-center border-t border-b border-gray-300 appearance-none" 
                                                         onchange="updatePrice()" readonly
                                                     />
@@ -196,7 +232,7 @@
                                             >
                                                 <div>
                                                     <span class="block font-medium">Trẻ em</span>
-                                                    <span class="text-sm text-gray-500">Từ 5 - 11 tuổi</span>
+                                                    <span class="text-sm text-gray-500">Dưới 12 tuổi</span>
                                                 </div>
                                                 <div class="flex items-center">
                                                     <button type="button"
@@ -205,7 +241,7 @@
                                                     >
                                                         -
                                                     </button>
-                                                    <input type="number" id="childCount" name="childCount" value="0" min="0" max="10" 
+                                                    <input type="number" id="childCount" name="childCount" value="0" min="0" max="<%= availableSlots %>" 
                                                         class="w-8 h-8 text-center border-t border-b border-gray-300 appearance-none" 
                                                         onchange="updatePrice()" readonly
                                                     />
@@ -309,10 +345,10 @@
                                                 <span>Người lớn:</span>
                                                 <span id="adultPrice">
                                                 <% if (hasPromotion && discountPercent > 0) { %>
-                                                    1 x <span class="line-through text-gray-500"><%= String.format("%,.0f", tour.getPriceAdult()) %> đ</span> 
-                                                    <%= String.format("%,.0f", adultPrice) %> đ
+                                                    1 x <span class="line-through text-gray-500"><%= currencyFormatter.format(tour.getPriceAdult()) %></span> 
+                                                    <%= currencyFormatter.format(adultPrice) %>
                                                 <% } else { %>
-                                                    1 x <%= String.format("%,.0f", adultPrice) %> đ
+                                                    1 x <%= currencyFormatter.format(adultPrice) %>
                                                 <% } %>
                                                 </span>
                                             </div>
@@ -320,16 +356,16 @@
                                                 <span>Trẻ em:</span>
                                                 <span id="childPrice">
                                                 <% if (hasPromotion && discountPercent > 0) { %>
-                                                    0 x <span class="line-through text-gray-500"><%= String.format("%,.0f", tour.getPriceChildren()) %> đ</span> 
-                                                    <%= String.format("%,.0f", childPrice) %> đ
+                                                    0 x <span class="line-through text-gray-500"><%= currencyFormatter.format(tour.getPriceChildren()) %></span> 
+                                                    <%= currencyFormatter.format(childPrice) %>
                                                 <% } else { %>
-                                                    0 x <%= String.format("%,.0f", childPrice) %> đ
+                                                    0 x <%= currencyFormatter.format(childPrice) %>
                                                 <% } %>
                                                 </span>
                                             </div>
                                             <div class="pt-4 border-t flex justify-between">
                                                 <span class="font-semibold">Tổng tiền:</span>
-                                                <span id="totalPrice" class="text-red-600 font-bold text-xl"><%= String.format("%,.0f", adultPrice) %> đ</span>
+                                                <span id="totalPrice" class="text-red-600 font-bold text-xl"><%= currencyFormatter.format(adultPrice) %></span>
                                                 <% if (hasPromotion && discountPercent > 0) { %>
                                                     <div class="text-red-500 text-sm">Đã giảm <%= String.format("%.0f", discountPercent) %>%</div>
                                                 <% } %>
@@ -360,6 +396,7 @@
         <!-- Set tour prices as hidden inputs to be read by JavaScript -->
         <input type="hidden" id="adult-price-value" value="<%= adultPrice %>">
         <input type="hidden" id="child-price-value" value="<%= childPrice %>">
+        <input type="hidden" id="available-slots" value="<%= availableSlots %>">
         
         <!-- For price display we also need original prices if there's a promotion -->
         <% if (hasPromotion && discountPercent > 0) { %>
@@ -375,15 +412,30 @@
             // Get price values from hidden inputs
             var adultPrice = parseFloat(document.getElementById('adult-price-value').value);
             var childPrice = parseFloat(document.getElementById('child-price-value').value);
+            var availableSlots = parseInt(document.getElementById('available-slots').value);
             
             // Update passenger count function
             function updatePassengerCount(type, action) {
                 var inputElement = document.getElementById(type + 'Count');
                 var count = parseInt(inputElement.value);
                 
+                // Get current passenger counts
+                var adultCount = parseInt(document.getElementById('adultCount').value);
+                var childCount = parseInt(document.getElementById('childCount').value);
+                var totalCount = adultCount + childCount;
+                
                 if (action === 'increase') {
-                    if (count < parseInt(inputElement.max)) {
-                        count++;
+                    // Only allow increase if total passengers won't exceed available slots
+                    if (type === 'adult') {
+                        // For adults, check if adding one more won't exceed available slots
+                        if (totalCount < availableSlots) {
+                            count++;
+                        }
+                    } else if (type === 'child') {
+                        // For children, also check if adding one more won't exceed available slots
+                        if (totalCount < availableSlots) {
+                            count++;
+                        }
                     }
                 } else if (action === 'decrease') {
                     if (count > parseInt(inputElement.min)) {
@@ -419,28 +471,28 @@
                     // Display prices with strikethrough for original prices
                     document.getElementById('adultPrice').innerHTML = 
                         adultCount + ' x <span class="line-through text-gray-500">' + 
-                        formatter.format(originalAdultPrice) + ' đ</span> ' + 
-                        formatter.format(adultPrice) + ' đ';
+                        formatter.format(originalAdultPrice) + ' VNĐ</span> ' + 
+                        formatter.format(adultPrice) + ' VNĐ';
                         
                     document.getElementById('childPrice').innerHTML = 
                         childCount + ' x <span class="line-through text-gray-500">' + 
-                        formatter.format(originalChildPrice) + ' đ</span> ' + 
-                        formatter.format(childPrice) + ' đ';
+                        formatter.format(originalChildPrice) + ' VNĐ</span> ' + 
+                        formatter.format(childPrice) + ' VNĐ';
                         
                     // Display total with discount information
                     document.getElementById('totalPrice').innerHTML = 
-                        formatter.format(totalPrice) + ' đ ' +
+                        formatter.format(totalPrice) + ' VNĐ ' +
                         '<span class="text-xs text-red-500">(Đã giảm ' + discountPercent + '%)</span>';
                 } else {
                     // Regular price display without promotion
                     document.getElementById('adultPrice').textContent = 
-                        adultCount + ' x ' + formatter.format(adultPrice) + ' đ';
+                        adultCount + ' x ' + formatter.format(adultPrice) + ' VNĐ';
                         
                     document.getElementById('childPrice').textContent = 
-                        childCount + ' x ' + formatter.format(childPrice) + ' đ';
+                        childCount + ' x ' + formatter.format(childPrice) + ' VNĐ';
                         
                     document.getElementById('totalPrice').textContent = 
-                        formatter.format(totalPrice) + ' đ';
+                        formatter.format(totalPrice) + ' VNĐ';
                 }
                 
                 // Update hidden form field for total amount
@@ -449,6 +501,29 @@
             
             // Initialize price display
             updatePrice();
+
+            // Phone number validation
+            function validatePhoneNumber() {
+                const phoneInput = document.getElementById('phone');
+                // If the field is readonly, don't validate
+                if (phoneInput.readOnly) {
+                    return true;
+                }
+                
+                const phone = phoneInput.value.trim();
+                const phoneError = document.getElementById('phoneError');
+                
+                // Check if phone number starts with 0 and has 10-11 digits total
+                const phoneRegex = /^0\d{9,10}$/;
+                if (!phoneRegex.test(phone)) {
+                    phoneError.classList.remove('hidden');
+                    phoneInput.focus();
+                    return false;
+                } else {
+                    phoneError.classList.add('hidden');
+                    return true;
+                }
+            }
         </script>
         <script>
             tailwind.config = {

@@ -1,6 +1,7 @@
 package dao;
 
 import model.Trip;
+import model.Tour;
 import utils.DBContext;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import dao.BookingDAO;
+import dao.TourDAO;
 
 /**
  * Data Access Object for Trip model
@@ -211,7 +213,7 @@ public class TripDAO {
     public List<Trip> getTripsByTourId(int tourId) {
         List<Trip> trips = new ArrayList<>();
         // Only select columns we're sure exist based on the database diagram
-        String sql = "SELECT id, tour_id, departure_date, return_date, start_time, end_time, available_slot FROM trip WHERE tour_id = ? ORDER BY departure_date ASC";
+        String sql = "SELECT id, tour_id, departure_city_id, destination_city_id, departure_date, return_date, start_time, end_time, available_slot, is_delete FROM trip WHERE tour_id = ? ORDER BY departure_date ASC";
         
         try (Connection conn = DBContext.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -238,19 +240,36 @@ public class TripDAO {
      */
     public Trip getTripById(int tripId) {
         String sql = "SELECT * FROM trip WHERE id = ? AND is_delete = 0";
+        System.out.println("Fetching trip with ID: " + tripId);
         
         try (Connection conn = DBContext.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setInt(1, tripId);
+            System.out.println("Executing SQL: " + sql.replace("?", String.valueOf(tripId)));
             
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return mapTrip(rs);
+                    Trip trip = mapTrip(rs);
+                    System.out.println("Successfully found trip: " + trip.getId() + 
+                                       ", Tour ID: " + trip.getTourId() + 
+                                       ", Departure Date: " + trip.getDepartureDate() +
+                                       ", Departure City: " + trip.getDepartureCityId() +
+                                       ", Destination City: " + trip.getDestinationCityId());
+                    return trip;
+                } else {
+                    System.out.println("No trip found with ID: " + tripId + " or trip is marked as deleted");
                 }
             }
-        } catch (SQLException | ClassNotFoundException e) {
-            System.out.println("Error getting trip by ID: " + e.getMessage());
+        } catch (SQLException e) {
+            System.out.println("SQL Error getting trip by ID " + tripId + ": " + e.getMessage());
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            System.out.println("Database driver class not found when getting trip by ID " + tripId + ": " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.out.println("Unexpected error getting trip by ID " + tripId + ": " + e.getMessage());
+            e.printStackTrace();
         }
         
         return null;
@@ -845,5 +864,66 @@ public class TripDAO {
         }
         
         return trip;
+    }
+    
+    /**
+     * Get the count of all trips (including deleted ones) for a specific tour
+     * @param tourId The tour ID to check
+     * @return The count of trips for the tour
+     */
+    public int getTripCountByTourId(int tourId) {
+        String sql = "SELECT COUNT(*) FROM trip WHERE tour_id = ?";
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, tourId);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            System.out.println("Error getting trip count by tour ID: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return 0; // Default to 0 in case of errors
+    }
+    
+    /**
+     * Get all active trips with tour information for filtering
+     * @return List of active trips (limited to 100 most recent to prevent performance issues)
+     */
+    public List<Trip> getAllActiveTrips() {
+        List<Trip> trips = new ArrayList<>();
+        String sql = "SELECT TOP 100 t.*, tr.name as tour_name FROM trip t " +
+                     "JOIN tours tr ON t.tour_id = tr.id " +
+                     "WHERE t.is_delete = 0 AND t.departure_date >= CONVERT(date, GETDATE()) " +
+                     "ORDER BY t.departure_date ASC";
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            
+            while (rs.next()) {
+                Trip trip = mapTrip(rs);
+                // Set tour name directly instead of loading the whole tour object
+                // to improve performance
+                if (trip != null) {
+                    Tour tour = new Tour();
+                    tour.setId(trip.getTourId());
+                    tour.setName(rs.getString("tour_name"));
+                    trip.setTour(tour);
+                    trips.add(trip);
+                }
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            System.out.println("Error getting all active trips: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return trips;
     }
 }

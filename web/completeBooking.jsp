@@ -1,4 +1,3 @@
-
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ page import="model.Booking" %>
 <%@ page import="model.Trip" %>
@@ -11,6 +10,9 @@
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Date" %>
+<%@ page import="java.text.DecimalFormat" %>
+<%@ page import="java.text.DecimalFormatSymbols" %>
+<%@ page import="java.util.Currency" %>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -61,6 +63,10 @@
             
             // Format currency
             NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+            currencyFormatter.setCurrency(Currency.getInstance("VND"));
+            DecimalFormatSymbols dfs = new DecimalFormatSymbols(new Locale("vi", "VN"));
+            dfs.setCurrencySymbol("VNĐ");
+            ((DecimalFormat) currencyFormatter).setDecimalFormatSymbols(dfs);
             
             // Format date
             SimpleDateFormat dateFormatter = new SimpleDateFormat("dd/MM/yyyy");
