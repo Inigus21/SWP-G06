@@ -1,8 +1,4 @@
-<%-- 
-    Document   : booking
-    Created on : Mar 8, 2025, 12:47:05 PM
-    Author     : Lom
---%>
+
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ page import="model.Tour" %>

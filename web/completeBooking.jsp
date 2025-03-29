@@ -1,8 +1,3 @@
-<%-- 
-    Document   : completeBooking
-    Created on : Mar 8, 2025, 12:56:14 PM
-    Author     : Lom
---%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ page import="model.Booking" %>

@@ -1,8 +1,3 @@
-<%-- 
-    Document   : my-bookings
-    Created on : Mar 8, 2025, 6:00:00 PM
-    Author     : Lom
---%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>

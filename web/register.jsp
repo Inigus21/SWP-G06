@@ -1,8 +1,3 @@
-<%-- 
-    Document   : register
-    Created on : Feb 25, 2025, 3:21:16 PM
-    Author     : Lom
---%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
