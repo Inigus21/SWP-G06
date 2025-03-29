@@ -22,12 +22,14 @@
     ((DecimalFormat) currencyFormatter).setDecimalFormatSymbols(dfs);
     
     // Make formatter available in EL
-    pageContext.setAttribute("currencyFormatter", currencyFormatter);
+    pageContext.setAttribute("currencyFormatter", currencyFormatter)
      // Get available trips for the trip filter
+
     TripDAO tripDAO = new TripDAO();
     List<Trip> availableTrips = tripDAO.getAllActiveTrips();
     pageContext.setAttribute("availableTrips", availableTrips);
 %>
+
 <jsp:include page="layout/header.jsp">
     <jsp:param name="active" value="bookings"/>
 </jsp:include>
@@ -48,7 +50,7 @@
                 </div>
                 <% session.removeAttribute("successMessage"); %>
             </c:if>
-
+            
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">All Bookings</h6>
@@ -57,7 +59,7 @@
                     <form id="filterForm" action="${pageContext.request.contextPath}/admin" method="get">
                         <input type="hidden" name="action" value="bookings">
                         <input type="hidden" name="page" value="1">
-
+                        
                         <div class="row mb-3">
                             <div class="col-md-2 mb-2">
                                 <div class="input-group">
@@ -105,7 +107,6 @@
                             </div>
                         </div>
                     </form>
-
                     <!-- Booking status tabs -->
                     <ul class="nav nav-tabs mb-3" id="bookingStatusTabs" role="tablist">
                         <li class="nav-item" role="presentation">
@@ -134,7 +135,6 @@
                             </button>
                         </li>
                     </ul>
-
                     <!-- Tab content -->
                     <div class="tab-content" id="bookingStatusTabsContent">
                         <!-- All bookings tab -->
@@ -275,6 +275,19 @@
                             <!-- Will be populated by JavaScript -->
                         </div>
 
+                        
+                        <div class="tab-pane fade" id="approved-bookings" role="tabpanel" aria-labelledby="approved-tab">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                        
+                        <div class="tab-pane fade" id="completed-bookings" role="tabpanel" aria-labelledby="completed-tab">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                        
+                        <div class="tab-pane fade" id="cancelled-bookings" role="tabpanel" aria-labelledby="cancelled-tab">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                        
                         <!-- Reject Booking Modal -->
                         <div class="modal fade" id="rejectBookingModal" tabindex="-1" aria-labelledby="rejectBookingModalLabel" aria-hidden="true">
                             <div class="modal-dialog">
@@ -300,7 +313,7 @@
                                 </div>
                             </div>
                         </div>
-
+                        
                         <!-- Pagination -->
                         <c:if test="${totalBookings > 0}">
                             <c:set var="currentPage" value="${currentPage != null ? currentPage : 1}" />

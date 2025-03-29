@@ -1,9 +1,3 @@
-<%-- 
-    Document   : my-bookings
-    Created on : Mar 8, 2025, 6:00:00 PM
-    Author     : Lom
---%>
-
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page import="model.Booking" %>
@@ -57,7 +51,6 @@
             dfs.setCurrencySymbol("VNĐ");
             ((DecimalFormat) currencyFormatter).setDecimalFormatSymbols(dfs);
             
-            
             // Format date
             SimpleDateFormat dateFormatter = new SimpleDateFormat("dd/MM/yyyy");
             SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm");
@@ -65,11 +58,11 @@
             // Get current date
             Date currentDate = new Date();
         %>
-
+        
         <!-- Include Header -->
         <jsp:include page="components/header.jsp" />
-
-         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div class="bg-white shadow-md rounded-lg">
                 <div class="p-4 sm:p-6">
                     <h1 class="text-2xl font-bold text-blue-700 text-center mb-6">ĐƠN ĐẶT TOUR CỦA TÔI</h1>
@@ -267,7 +260,7 @@
                 </div>
             </div>
         </div>
-
+        
         <!-- Booking Details Modal -->
         <div id="bookingDetailsModal" class="hidden fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
             <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -278,14 +271,14 @@
                             <i class="fas fa-times text-xl"></i>
                         </button>
                     </div>
-
+                    
                     <div id="bookingDetailsContent">
                         <!-- Content will be loaded dynamically -->
                     </div>
                 </div>
             </div>
         </div>
-
+        
         <!-- Cancel Confirmation Modal -->
         <div id="cancelConfirmationModal" class="hidden fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
             <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
@@ -296,7 +289,7 @@
                             <i class="fas fa-times text-xl"></i>
                         </button>
                     </div>
-
+                    
                     <div id="earlyCancelWarning" class="mb-4 p-4 bg-yellow-50 text-yellow-700 rounded-lg hidden">
                         <div class="flex">
                             <div class="flex-shrink-0">
@@ -308,7 +301,7 @@
                             </div>
                         </div>
                     </div>
-
+                    
                     <div id="lateCancelWarning" class="mb-4 p-4 bg-red-50 text-red-700 rounded-lg hidden">
                         <div class="flex">
                             <div class="flex-shrink-0">
@@ -320,41 +313,43 @@
                             </div>
                         </div>
                     </div>
-
+                    
                     <form id="cancelForm" action="cancel-booking" method="post">
                         <input type="hidden" id="cancelBookingId" name="bookingId" value="">
                         <input type="hidden" id="cancelType" name="cancelType" value="">
-
+                        
                         <div class="mb-4">
                             <label for="cancelReason" class="block text-sm font-medium text-gray-700 mb-1">Lý do hủy tour:</label>
                             <textarea id="cancelReason" name="reason" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" required></textarea>
                         </div>
-
+                        
                         <div class="flex justify-end space-x-3 mt-6">
                             <button type="button" onclick="closeModal('cancelConfirmationModal')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
                                 Hủy bỏ
                             </button>
-                                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                            <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
                                 Xác nhận hủy tour
-                                        </button>
+                            </button>
                         </div>
                     </form>
                 </div>
-                                        </div>
+            </div>
         </div>
-
-                                        <!-- Include Footer -->    
-                                        <jsp:include page="components/footer.jsp" />
-
+        
+        <!-- Include Footer -->
+        <jsp:include page="components/footer.jsp" />
+        
         <script>
-                                        // Function to show booking details modal
-                                function showBookingDetails(bookingId) {
-                                // Here we'll get the booking details and display them in the modal
-                                const modal = document.getElementById('bookingDetailsModal');
-                                        const content = document.getElementById('bookingDetailsContent');
-                                        // Create details HTML based on the booking details
-                                        let html = '';
-            <% for (Booking booking : bookings) { 
+            // Function to show booking details modal
+            function showBookingDetails(bookingId) {
+                // Here we'll get the booking details and display them in the modal
+                const modal = document.getElementById('bookingDetailsModal');
+                const content = document.getElementById('bookingDetailsContent');
+                
+                // Create details HTML based on the booking details
+                let html = '';
+                
+                <% for (Booking booking : bookings) { 
                     Trip trip = tripsMap.get(booking.getId());
                     Tour tour = toursMap.get(booking.getId());
                     City departureCity = departureCitiesMap.get(booking.getId());
@@ -371,90 +366,90 @@
                         boolean isEarlyCancel = false;
                         
                         if (trip.getDepartureDate() != null) {
-                                long diffInMillies = Math.abs(trip.getDepartureDate().getTime() - currentDate.getTime());
-                                        daysUntilDeparture = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+                            long diffInMillies = Math.abs(trip.getDepartureDate().getTime() - currentDate.getTime());
+                            daysUntilDeparture = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
                             
-                                                    // Can cancel if departure date is in the future
-                                canCancel = trip.getDepartureDate().after(currentDate) &&
-                                booking.getStatus() != null && 
-                                            (booking.getStatus().equals("Đã thanh toán") || booking.getStatus().equals("Đã duyệt"));
-                                            
-                                            // Early cancel (>7 days before departure)
-                                                isEarlyCancel = daysUntilDeparture > 7;
+                            // Can cancel if departure date is in the future
+                            canCancel = trip.getDepartureDate().after(currentDate) &&
+                                       booking.getStatus() != null && 
+                                       (booking.getStatus().equals("Đã thanh toán") || booking.getStatus().equals("Đã duyệt"));
+                            
+                            // Early cancel (>7 days before departure)
+                            isEarlyCancel = daysUntilDeparture > 7;
                         }
-            %>
-                                                if (bookingId === <%= booking.getId() %>) {
-                                html = `
-                                        <div class="border border-gray-300 rounded-lg overflow-hidden mb-4">
-            <div class="bg-gray-100 px-6 py-4 border-b">
-            <div class="flex justify-between items-center">
-            <h2 class="text-lg font-bold">Thông tin đặt tour</h2>
-            <% String detailStatusClass = "bg-gray-100 text-gray-800"; %>
-            <% if (booking.getStatus() != null) {
+                %>
+                    if (bookingId === <%= booking.getId() %>) {
+                        html = `
+                            <div class="border border-gray-300 rounded-lg overflow-hidden mb-4">
+                                <div class="bg-gray-100 px-6 py-4 border-b">
+                                    <div class="flex justify-between items-center">
+                                        <h2 class="text-lg font-bold">Thông tin đặt tour</h2>
+                                        <% String detailStatusClass = "bg-gray-100 text-gray-800"; %>
+                                        <% if (booking.getStatus() != null) {
                                             if (booking.getStatus().equals("Đã thanh toán")) { 
                                                 detailStatusClass = "bg-blue-100 text-blue-800";
                                             } else if (booking.getStatus().equals("Đã duyệt")) { 
                                                 detailStatusClass = "bg-green-100 text-green-800";
-                                                } else if (booking.getStatus().equals("Đã hủy")) { 
-                                            detailStatusClass = "bg-red-100 text-red-800";
-                                                } else if (booking.getStatus().equals("Đã hủy muộn")) { 
-                                            detailStatusClass = "bg-orange-100 text-orange-800";
+                                            } else if (booking.getStatus().equals("Đã hủy")) { 
+                                                detailStatusClass = "bg-red-100 text-red-800";
+                                            } else if (booking.getStatus().equals("Đã hủy muộn")) { 
+                                                detailStatusClass = "bg-orange-100 text-orange-800";
                                             } else if (booking.getStatus().equals("Hoàn thành")) { 
                                                 detailStatusClass = "bg-purple-100 text-purple-800";
                                             }
                                         } %>
-                                    <span class="px-3 py-1 rounded-full text-sm font-medium <%= detailStatusClass %>">
+                                        <span class="px-3 py-1 rounded-full text-sm font-medium <%= detailStatusClass %>">
                                             <%= booking.getStatus() != null ? booking.getStatus() : "Chưa xác định" %>
-            </span>
-            </div>
-            </div>
-            <div class="p-6">
-                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <!-- Tour Info -->
-        <div>
-                                                <h3 class="font-medium mb-3">Thông tin tour</h3>
-            <div class="flex items-start mb-3">
-                                                    <div class="w-1/3 text-gray-600">Mã tour:</div>
-                                                        <div class="w-2/3 font-medium">#<%= tour.getId() %></div>
-</div>
-                    <div class="flex items-start mb-3">
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="p-6">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                        <!-- Tour Info -->
+                                        <div>
+                                            <h3 class="font-medium mb-3">Thông tin tour</h3>
+                                            <div class="flex items-start mb-3">
+                                                <div class="w-1/3 text-gray-600">Mã tour:</div>
+                                                <div class="w-2/3 font-medium">#<%= tour.getId() %></div>
+                                            </div>
+                                            <div class="flex items-start mb-3">
                                                 <div class="w-1/3 text-gray-600">Tên tour:</div>
-                                            <div class="w-2/3 font-medium"><%= tour.getName() %></div>
-                        </div>
-                                                <div class="flex items-start mb-3">
-                        <div class="w-1/3 text-gray-600">Điểm đến:</div>
+                                                <div class="w-2/3 font-medium"><%= tour.getName() %></div>
+                                            </div>
+                                            <div class="flex items-start mb-3">
+                                                <div class="w-1/3 text-gray-600">Điểm đến:</div>
                                                 <div class="w-2/3 font-medium"><%= departureCity != null ? departureCity.getName() : "Chưa xác định" %></div>
-                                                </div>
-                        <div class="flex items-start mb-3">
-                                                    <div class="w-1/3 text-gray-600">Điểm khởi hành:</div>
-                                                        <div class="w-2/3 font-medium"><%= destinationCity != null ? destinationCity.getName() : "Chưa xác định" %></div>
-                        </div>
-                        <div class="flex items-start mb-3">
-                                                        <div class="w-1/3 text-gray-600">Ngày khởi hành:</div>
-                                                        <div class="w-2/3 font-medium">
-                                                        <% if (trip.getDepartureDate() != null) { %>
+                                            </div>
+                                            <div class="flex items-start mb-3">
+                                                <div class="w-1/3 text-gray-600">Điểm khởi hành:</div>
+                                                <div class="w-2/3 font-medium"><%= destinationCity != null ? destinationCity.getName() : "Chưa xác định" %></div>
+                                            </div>
+                                            <div class="flex items-start mb-3">
+                                                <div class="w-1/3 text-gray-600">Ngày khởi hành:</div>
+                                                <div class="w-2/3 font-medium">
+                                                    <% if (trip.getDepartureDate() != null) { %>
                                                         <%= dateFormatter.format(trip.getDepartureDate()) %>, <%= timeFormatter.format(trip.getDepartureDate()) %>
                                                     <% } else { %>
-                                            Chưa xác định
-                                            <% } %>
-                                            </div>
-                                                </div>
-                                                <div class="flex items-start mb-3">
-                                                <div class="w-1/3 text-gray-600">Ngày kết thúc:</div>
-                                                <div class="w-2/3 font-medium">
-                                                    <% if (trip.getReturnDate() != null) { %>
-                                                    <%= dateFormatter.format(trip.getReturnDate()) %>, <%= timeFormatter.format(trip.getReturnDate()) %>
-                                                        <% } else { %>
                                                         Chưa xác định
                                                     <% } %>
                                                 </div>
                                             </div>
-                                        <div class="flex items-start mb-3">
-                                            <div class="w-1/3 text-gray-600">Số lượng:</div>
+                                            <div class="flex items-start mb-3">
+                                                <div class="w-1/3 text-gray-600">Ngày kết thúc:</div>
+                                                <div class="w-2/3 font-medium">
+                                                    <% if (trip.getReturnDate() != null) { %>
+                                                        <%= dateFormatter.format(trip.getReturnDate()) %>, <%= timeFormatter.format(trip.getReturnDate()) %>
+                                                    <% } else { %>
+                                                        Chưa xác định
+                                                    <% } %>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-start mb-3">
+                                                <div class="w-1/3 text-gray-600">Số lượng:</div>
                                                 <div class="w-2/3 font-medium">
                                                     <%= booking.getAdultNumber() %> người lớn, <%= booking.getChildNumber() %> trẻ em
                                                 </div>
-                                                </div>
+                                            </div>
                                         </div>
                                         
                                         <!-- Payment Info -->
@@ -476,17 +471,17 @@
                                             <div class="flex items-start mb-3">
                                                 <div class="w-1/3 text-gray-600">Thời gian:</div>
                                                 <div class="w-2/3 font-medium">
-            <% if (booking.getCreatedDate() != null) { %>
-            <%= dateFormatter.format(booking.getCreatedDate()) %>
-            <% } else { %>
+                                                    <% if (booking.getCreatedDate() != null) { %>
+                                                        <%= dateFormatter.format(booking.getCreatedDate()) %>
+                                                    <% } else { %>
                                                         Chưa xác định
-            <% } %>
+                                                    <% } %>
                                                 </div>
                                             </div>
                                             <div class="flex items-start mb-3">
                                                 <div class="w-1/3 text-gray-600">Tổng tiền:</div>
                                                 <div class="w-2/3 font-bold text-red-600">
-            <%= currencyFormatter.format(totalPrice) %>
+                                                    <%= currencyFormatter.format(totalPrice) %>
                                                 </div>
                                             </div>
                                         </div>
@@ -519,7 +514,7 @@
                                     <i class="fas fa-times mr-2"></i> Đóng
                                 </button>
                                 
-            <% if (canCancel) { %>
+                                <% if (canCancel) { %>
                                     <!-- Cancel Button - show if trip hasn't started yet -->
                                     <button type="button" 
                                             data-booking-id="<%= booking.getId() %>"
@@ -528,7 +523,7 @@
                                             class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition">
                                         <i class="fas fa-times-circle mr-2"></i> Hủy tour
                                     </button>
-            <% } %>
+                                <% } %>
                                 
                                 <a href="tour" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition text-center">
                                     <i class="fas fa-plus mr-2"></i> Đặt tour khác
@@ -536,10 +531,10 @@
                             </div>
                         `;
                     }
-            <% 
+                <% 
                     }
                   } 
-            %>
+                %>
                 
                 // Update modal content
                 content.innerHTML = html;
