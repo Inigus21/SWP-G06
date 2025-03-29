@@ -173,28 +173,7 @@ public class UserDAO {
      * @param userId The user ID
      * @return The hashed password or null if user not found
      */
-    public String getUserPasswordHash(int userId) throws SQLException, ClassNotFoundException {
-        String sql = "SELECT password FROM Account WHERE id = ?";
-        try (Connection conn = DBContext.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, userId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    String password = rs.getString("password");
-                    if (password != null) {
-                        password = password.trim();
-                        System.out.println("Retrieved password hash for user " + userId + ": " + password);
-                    } else {
-                        System.out.println("Retrieved NULL password for user " + userId);
-                    }
-                    return password;
-                } else {
-                    System.out.println("No password found for user " + userId);
-                }
-            }
-        }
-        return null;
-    }
+   
 
     public User findByEmail(String email) throws SQLException, ClassNotFoundException {
         String sql = "SELECT * FROM Account WHERE email = ? AND is_delete = 0";
